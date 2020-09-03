@@ -10,11 +10,9 @@ def _requirements(file):
     return open(file).read().splitlines()
 
 
-version = '0.0.2'
-
 setup(
     name='nose-reorder',
-    version=version,
+    version=read("version"),
     url='https://github.com/launchableinc/nose-reorder',
     author='Launchable team',
     author_email=' info@launchableinc.com',
