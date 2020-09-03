@@ -9,7 +9,7 @@ import requests
 class LaunchableClientFactory:
     BASE_URL_KEY = "LAUNCHABLE_REORDERING_BASE_URL"
     ORG_NAME_KEY = "LAUNCHABLE_REORDERING_ORG_NAME"
-    WORKPLACE_NAME_KEY = "LAUNCHABLE_REORDERING_WORKPLACE_NAME"
+    WORKSPACE_NAME_KEY = "LAUNCHABLE_REORDERING_WORKSPACE_NAME"
     API_TOKEN_KEY = "LAUNCHABLE_REORDERING_API_TOKEN"
 
     @classmethod
@@ -17,7 +17,7 @@ class LaunchableClientFactory:
         return LaunchableClient(
             os.environ[cls.BASE_URL_KEY],
             os.environ[cls.ORG_NAME_KEY],
-            os.environ[cls.WORKPLACE_NAME_KEY],
+            os.environ[cls.WORKSPACE_NAME_KEY],
             os.environ[cls.API_TOKEN_KEY],
             requests,
         )

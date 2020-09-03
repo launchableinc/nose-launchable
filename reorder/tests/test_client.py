@@ -10,7 +10,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
     def setUp(self):
         os.environ[LaunchableClientFactory.BASE_URL_KEY] = 'base_url'
         os.environ[LaunchableClientFactory.ORG_NAME_KEY] = 'org_name'
-        os.environ[LaunchableClientFactory.WORKPLACE_NAME_KEY] = 'wp_name'
+        os.environ[LaunchableClientFactory.WORKSPACE_NAME_KEY] = 'wp_name'
         os.environ[LaunchableClientFactory.API_TOKEN_KEY] = 'api_token'
 
     def test_prepare(self):
