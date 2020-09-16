@@ -4,7 +4,6 @@ import traceback
 
 from nose.plugins import Plugin
 from reorder.client import LaunchableClientFactory
-from reorder.client import S3ClientFactory
 from reorder.manager import get_test_names, reorder
 
 log = logging.getLogger("nose.plugins.reorder")
@@ -25,13 +24,10 @@ class Reorder(Plugin):
 
     def prepareTest(self, test):
         try:
-            s3_client = S3ClientFactory.prepare()
-            template = s3_client.get_template(os.environ[self.DIR_NAME])
-
             names = get_test_names(test)
 
             launchable_client = LaunchableClientFactory.prepare()
-            order = launchable_client.infer(names, template)
+            order = launchable_client.infer(names)
 
             return reorder(test, order)
         except Exception as error:

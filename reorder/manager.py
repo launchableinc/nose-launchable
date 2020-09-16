@@ -1,5 +1,4 @@
 from nose.case import Test
-from nose.plugins.xunit import id_split
 
 
 def get_test_names(test):
@@ -7,30 +6,28 @@ def get_test_names(test):
 
     def dfs(case):
         if type(case) is Test:
-            class_name, name = id_split(case.id())
-            names.append({"className": class_name, "name": name})
-            return
+            names.append(case.id())
+            return case
 
-        for t in case._tests:
-            dfs(t)
+        # Access to _tests is through a generator, so iteration is not repeatable
+        case._tests = [dfs(t) for t in case]
+        return case
 
     dfs(test)
     return names
 
 
 def reorder(test, order):
-    order_map = dict(((t["className"], t["name"]), i) for i, t in enumerate(order))
+    order_map = dict((t["testName"], i) for i, t in enumerate(order))
 
     def dfs(case):
         if type(case) is Test:
-            cls, name = id_split(case.id())
-
-            return order_map[(cls, name)], case
+            return order_map[case.id()], case
 
         cases = []
         total_index = 0
 
-        children = [dfs(t) for t in case._tests]
+        children = [dfs(t) for t in case]
         # TODO: Improve the reducing algorithm
         for i, c in sorted(children, key=lambda x: x[0]):
             cases.append(c)
