@@ -11,12 +11,12 @@ def _requirements(file):
 
 
 setup(
-    name='nose-reorder',
+    name='nose-launchable',
     version=read("version"),
-    url='https://github.com/launchableinc/nose-reorder',
+    url='https://github.com/launchableinc/nose-launchable',
     author='Launchable team',
     author_email=' info@launchableinc.com',
-    description='A nose plugin to reorder tests by likelihood of failure',
+    description='A nose plugin to interact with Launchable API',
     long_description=read("README.rst"),
     packages=find_packages(),
     install_requires=_requirements('requirements.txt'),
@@ -28,7 +28,7 @@ setup(
     ],
     entry_points={
         'nose.plugins.0.10': [
-            'reorder = reorder:Reorder'
+            'launchable = launchable:Launchable'
         ],
     },
 )

@@ -2,22 +2,22 @@ import logging
 import traceback
 
 from nose.plugins import Plugin
-from reorder.client import LaunchableClientFactory
-from reorder.manager import parse_test, reorder
+from launchable.client import LaunchableClientFactory
+from launchable.manager import parse_test, reorder
 
-log = logging.getLogger("nose.plugins.reorder")
+log = logging.getLogger("nose.plugins.launchable")
 
 
-class Reorder(Plugin):
-    name = "reorder"
+class Launchable(Plugin):
+    name = "launchable"
 
     def options(self, parser, env):
-        super(Reorder, self).options(parser, env=env)
-        parser.add_option("--reorder", action='store_true', dest="reorder", help="Enable Launchable test reordering")
+        super(Launchable, self).options(parser, env=env)
+        parser.add_option("--launchable", action='store_true', dest="launchable", help="Enable Launchable API interaction")
 
     def configure(self, options, conf):
-        super(Reorder, self).configure(options, conf)
-        self.enabled = options.reorder
+        super(Launchable, self).configure(options, conf)
+        self.enabled = options.launchable
 
     def prepareTest(self, test):
         try:

@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import MagicMock
 
 import requests
-from reorder.client import LaunchableClientFactory, LaunchableClient
+from launchable.client import LaunchableClientFactory, LaunchableClient
 
 
 class TestLaunchableClientFactory(unittest.TestCase):
