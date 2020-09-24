@@ -1,17 +1,14 @@
 import logging
-import os
 import traceback
 
 from nose.plugins import Plugin
 from reorder.client import LaunchableClientFactory
-from reorder.manager import get_test_names, reorder
+from reorder.manager import parse_test, reorder
 
 log = logging.getLogger("nose.plugins.reorder")
 
 
 class Reorder(Plugin):
-    DIR_NAME = "LAUNCHABLE_REORDERING_DIR_NAME"
-
     name = "reorder"
 
     def options(self, parser, env):
@@ -24,10 +21,10 @@ class Reorder(Plugin):
 
     def prepareTest(self, test):
         try:
-            names = get_test_names(test)
+            t = parse_test(test)
 
             launchable_client = LaunchableClientFactory.prepare()
-            order = launchable_client.infer(names)
+            order = launchable_client.infer(t)
 
             return reorder(test, order)
         except Exception as error:

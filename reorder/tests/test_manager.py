@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from nose.case import Test
-from reorder.manager import get_test_names, reorder
+from reorder.manager import parse_test, reorder
 
 
 class MockSuite:
@@ -24,41 +24,84 @@ class TestManager(unittest.TestCase):
         mock_test2 = MagicMock(name="test2")
         mock_test2.id.return_value = "TestClass2.TestName2"
 
-        self.mock_test = MockSuite([Test(mock_test0), MockSuite([Test(mock_test1), Test(mock_test2)])])
+        self.mock_suite1 = MockSuite([Test(mock_test1), Test(mock_test2)])
+        self.mock_suite0 = MockSuite([Test(mock_test0), self.mock_suite1])
 
-    def test_get_test_names(self):
-        want = ['TestClass0.TestName0', 'TestClass1.TestName1', 'TestClass2.TestName2']
-        got = get_test_names(self.mock_test)
+    def test_parse_test(self):
+        want = {
+            'type': 'tree',
+            'root':
+                {
+                    'type': 'treeNode',
+                    'id': str(id(self.mock_suite0)),
+                    'children':
+                        [
+                            {'type': 'testCaseNode', 'testName': 'TestClass0.TestName0'},
+                            {
+                                'type': 'treeNode',
+                                'id': str(id(self.mock_suite1)),
+                                'children':
+                                    [
+                                        {'type': 'testCaseNode', 'testName': 'TestClass1.TestName1'},
+                                        {'type': 'testCaseNode', 'testName': 'TestClass2.TestName2'}
+                                    ],
+                            }
+                        ],
+                },
+        }
+
+        got = parse_test(self.mock_suite0)
 
         self.assertEqual(want, got)
 
     def test_get_test_names_empty(self):
-        test = MockSuite([])
+        suite = MockSuite([])
 
-        want = []
-        got = get_test_names(test)
+        want = {'type': 'tree', 'root': {'type': 'treeNode', 'id': str(id(suite)), 'children': []}}
+        got = parse_test(suite)
 
         self.assertEqual(want, got)
 
     def test_reorder(self):
-        order = [
-            {"testName": "TestClass2.TestName2"},
-            {"testName": "TestClass1.TestName1"},
-            {"testName": "TestClass0.TestName0"}
-        ]
-        ordered = reorder(self.mock_test, order)
+        want = {
+            'type': 'tree',
+            'root':
+                {
+                    'type': 'treeNode',
+                    'id': str(id(self.mock_suite0)),
+                    'children':
+                        [
+                            {
+                                'type': 'treeNode',
+                                'id': str(id(self.mock_suite1)),
+                                'children':
+                                    [
+                                        {'type': 'testCaseNode', 'testName': 'TestClass2.TestName2'},
+                                        {'type': 'testCaseNode', 'testName': 'TestClass1.TestName1'},
+                                    ],
+                            },
+                            {'type': 'testCaseNode', 'testName': 'TestClass0.TestName0'},
+                        ],
+                },
+        }
 
-        want = ['TestClass2.TestName2', 'TestClass1.TestName1', 'TestClass0.TestName0']
-        got = get_test_names(ordered)
+        reorder(self.mock_suite0, want)
 
+        got = parse_test(self.mock_suite0)
         self.assertEqual(want, got)
 
     def test_reorder_empty(self):
         test = MockSuite([])
 
-        ordered = reorder(test, [])
+        reorder(test, {'type': 'tree', 'root': {}})
 
-        want = []
-        got = get_test_names(ordered)
+        want = {'type': 'tree', 'root': {'type': 'treeNode', 'id': str(id(test)), 'children': []}}
+        got = parse_test(test)
 
         self.assertEqual(want, got)
+
+    def test_reorder_unexpected_type(self):
+        test = MockSuite([])
+
+        with self.assertRaises(RuntimeError):
+            reorder(test, {'type': 'graph', 'root': {}})

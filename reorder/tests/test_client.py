@@ -34,22 +34,27 @@ class TestLaunchableClient(unittest.TestCase):
 
         client = LaunchableClient("base_url", "org_name", "wp_name", "target_name", "api_token", mock_requests)
 
-        names = ["class0.test0", "class0.test1"]
+        test = {
+            "type": "tree",
+            "root": {
+                "type": "testCaseNode",
+                "testName": "class0.test0"
+            }
+        }
 
-        client.infer(names)
+        client.infer(test)
 
         expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/inference"
         expected_headers = {
             'Content-Type': 'application/json',
+            'X-Client-Name': LaunchableClient.CLIENT_NAME,
+            'X-Client-Version': LaunchableClient.CLIENT_VERSION,
             'Authorization': 'Bearer api_token'
         }
 
         expected_body = {
             "targetName": "target_name",
-            "tests": [
-                {'testSessionId': '1', 'testName': 'class0.test0'},
-                {'testSessionId': '1', 'testName': 'class0.test1'},
-            ],
+            'test': {'type': 'tree', 'root': {'type': 'testCaseNode', 'testName': 'class0.test0'}},
             "session": {'id': '1', 'subject': '1', 'flavors': {}},
         }
 
