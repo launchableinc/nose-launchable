@@ -18,7 +18,7 @@ class LaunchableClientFactory:
 
     @classmethod
     def _parse_options(cls):
-        user, token = os.environ[cls.API_TOKEN_KEY].split(":", 1)
+        _, user, token = os.environ[cls.API_TOKEN_KEY].split(":", 2)
         org, workplace = user.split("/", 1)
 
         return cls._get_base_url(), org, workplace, token

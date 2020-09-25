@@ -8,7 +8,7 @@ from launchable.client import LaunchableClientFactory, LaunchableClient
 
 class TestLaunchableClientFactory(unittest.TestCase):
     def setUp(self):
-        os.environ[LaunchableClientFactory.API_TOKEN_KEY] = 'org_name/wp_name:token'
+        os.environ[LaunchableClientFactory.API_TOKEN_KEY] = 'v1:org_name/wp_name:token'
 
     def test_prepare(self):
         client = LaunchableClientFactory.prepare()
