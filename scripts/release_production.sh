@@ -1,7 +1,7 @@
-current=`cat version`
+current=`cat launchable/version.py`
 
 read -p "Next version (current version: $current): " next
-echo $next > version
+echo "__version__ = '$next'" > launchable/version.py
 
 ./scripts/build.sh
 

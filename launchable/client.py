@@ -1,10 +1,8 @@
 import os
+from launchable.version import __version__
 
 import requests
 
-
-def _read_version(file):
-    return open(os.path.join(os.path.dirname(__file__), file)).read().replace('\n', '')
 
 class LaunchableClientFactory:
     BASE_URL_KEY = "NOSE_LAUNCHABLE_BASE_URL"
@@ -30,12 +28,10 @@ class LaunchableClientFactory:
         return os.getenv(cls.BASE_URL_KEY) or cls.DEFAULT_BASE_URL
 
 
-
 class LaunchableClient:
     # TODO: Stop using a fictitious id once the server starts dynamic reordering
     FICTITIOUS_ID = "1"
     CLIENT_NAME = "nose-launchable"
-    CLIENT_VERSION = _read_version('../version')
 
     def __init__(self, base_url, org_name, workspace_name, token, http):
         self.base_url = base_url
@@ -54,7 +50,7 @@ class LaunchableClient:
         headers = {
             'Content-Type': 'application/json',
             'X-Client-Name': self.CLIENT_NAME,
-            'X-Client-Version': self.CLIENT_VERSION,
+            'X-Client-Version': __version__,
             'Authorization': 'Bearer {}'.format(self.token)
         }
         body = self._request_body(test)

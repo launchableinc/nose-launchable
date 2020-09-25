@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+from launchable.version import __version__
 from os import path
 
 
-def read(file):
+def _read(file):
     return open(path.join(path.dirname(__file__), file)).read()
 
 
@@ -12,12 +13,12 @@ def _requirements(file):
 
 setup(
     name='nose-launchable',
-    version=read("version"),
+    version=__version__,
     url='https://github.com/launchableinc/nose-launchable',
     author='Launchable team',
     author_email=' info@launchableinc.com',
     description='A nose plugin to interact with Launchable API',
-    long_description=read("README.rst"),
+    long_description=_read("README.rst"),
     packages=find_packages(),
     install_requires=_requirements('requirements.txt'),
     classifiers=[
