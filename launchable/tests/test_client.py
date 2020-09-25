@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import requests
 from launchable.client import LaunchableClientFactory, LaunchableClient
+from launchable.version import __version__
 
 
 class TestLaunchableClientFactory(unittest.TestCase):
@@ -54,7 +55,7 @@ class TestLaunchableClient(unittest.TestCase):
         expected_headers = {
             'Content-Type': 'application/json',
             'X-Client-Name': LaunchableClient.CLIENT_NAME,
-            'X-Client-Version': LaunchableClient.CLIENT_VERSION,
+            'X-Client-Version': __version__,
             'Authorization': 'Bearer token'
         }
 
