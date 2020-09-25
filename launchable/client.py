@@ -5,8 +5,8 @@ import requests
 
 
 class LaunchableClientFactory:
-    BASE_URL_KEY = "NOSE_LAUNCHABLE_BASE_URL"
-    API_TOKEN_KEY = "NOSE_LAUNCHABLE_API_TOKEN"
+    BASE_URL_KEY = "LAUNCHABLE_BASE_URL"
+    API_TOKEN_KEY = "LAUNCHABLE_API_TOKEN"
 
     DEFAULT_BASE_URL = "https://api.mercury.launchableinc.com"
 

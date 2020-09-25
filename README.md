@@ -16,7 +16,7 @@ In addition to specifying the `--launchable` flag, you need to set the following
 
 |  Key  |  Description  |
 | ---- | ---- |
-|  NOSE_LAUNCHABLE_API_TOKEN  |  API token to access Launchable API |
+|  LAUNCHABLE_API_TOKEN  |  API token to access Launchable API |
 
 ## Development
 Pull requests are always appreciated. If you want to see whether your changes work as expected,  run the following command to install the plugin locally.
