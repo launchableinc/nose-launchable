@@ -8,35 +8,40 @@ def _read_version(file):
 
 class LaunchableClientFactory:
     BASE_URL_KEY = "NOSE_LAUNCHABLE_BASE_URL"
-    ORG_NAME_KEY = "NOSE_LAUNCHABLE_ORG_NAME"
-    WORKSPACE_NAME_KEY = "NOSE_LAUNCHABLE_WORKSPACE_NAME"
-    TARGET_NAME_KEY = "NOSE_LAUNCHABLE_TARGET_NAME"
     API_TOKEN_KEY = "NOSE_LAUNCHABLE_API_TOKEN"
+
+    DEFAULT_BASE_URL = "https://api.mercury.launchableinc.com"
 
     @classmethod
     def prepare(cls):
-        return LaunchableClient(
-            os.environ[cls.BASE_URL_KEY],
-            os.environ[cls.ORG_NAME_KEY],
-            os.environ[cls.WORKSPACE_NAME_KEY],
-            os.environ[cls.TARGET_NAME_KEY],
-            os.environ[cls.API_TOKEN_KEY],
-            requests,
-        )
+        url, org, wp, token = cls._parse_options()
+
+        return LaunchableClient(url, org, wp, token, requests)
+
+    @classmethod
+    def _parse_options(cls):
+        user, token = os.environ[cls.API_TOKEN_KEY].split(":", 1)
+        org, workplace = user.split("/", 1)
+
+        return cls._get_base_url(), org, workplace, token
+
+    @classmethod
+    def _get_base_url(cls):
+        return os.getenv(cls.BASE_URL_KEY) or cls.DEFAULT_BASE_URL
+
 
 
 class LaunchableClient:
     # TODO: Stop using a fictitious id once the server starts dynamic reordering
     FICTITIOUS_ID = "1"
-    CLIENT_NAME = "nose-reorder"
+    CLIENT_NAME = "nose-launchable"
     CLIENT_VERSION = _read_version('../version')
 
-    def __init__(self, base_url, org_name, workspace_name, target_name, api_token, http):
+    def __init__(self, base_url, org_name, workspace_name, token, http):
         self.base_url = base_url
         self.org_name = org_name
         self.workspace_name = workspace_name
-        self.target_name = target_name
-        self.api_token = api_token
+        self.token = token
         self.http = http
 
     def infer(self, test):
@@ -50,7 +55,7 @@ class LaunchableClient:
             'Content-Type': 'application/json',
             'X-Client-Name': self.CLIENT_NAME,
             'X-Client-Version': self.CLIENT_VERSION,
-            'Authorization': 'Bearer {}'.format(self.api_token)
+            'Authorization': 'Bearer {}'.format(self.token)
         }
         body = self._request_body(test)
 
@@ -61,7 +66,6 @@ class LaunchableClient:
 
     def _request_body(self, test):
         return {
-            "targetName": self.target_name,
             "test": test,
             "session": {"id": self.FICTITIOUS_ID, "subject": self.FICTITIOUS_ID, "flavors": {}},
         }
