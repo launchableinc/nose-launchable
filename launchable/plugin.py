@@ -26,7 +26,10 @@ class Launchable(Plugin):
             launchable_client = LaunchableClientFactory.prepare()
             order = launchable_client.infer(t)
 
-            return reorder(test, order)
+            reorder(test, order)
+
+            print("Tests have been successfully reordered")
+            return
         except Exception as error:
             log.warning("An exception occurred while reordering. Executing tests in standard order: {}".format(error))
             log.warning(traceback.format_exc())
