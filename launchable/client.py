@@ -6,7 +6,7 @@ import requests
 
 class LaunchableClientFactory:
     BASE_URL_KEY = "LAUNCHABLE_BASE_URL"
-    API_TOKEN_KEY = "LAUNCHABLE_API_TOKEN"
+    TOKEN_KEY = "LAUNCHABLE_TOKEN"
 
     DEFAULT_BASE_URL = "https://api.mercury.launchableinc.com"
 
@@ -18,7 +18,9 @@ class LaunchableClientFactory:
 
     @classmethod
     def _parse_options(cls):
-        _, user, token = os.environ[cls.API_TOKEN_KEY].split(":", 2)
+        token = os.environ[cls.TOKEN_KEY]
+
+        _, user, _ = token.split(":", 2)
         org, workplace = user.split("/", 1)
 
         return cls._get_base_url(), org, workplace, token

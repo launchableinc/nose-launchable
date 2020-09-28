@@ -9,7 +9,7 @@ from launchable.version import __version__
 
 class TestLaunchableClientFactory(unittest.TestCase):
     def setUp(self):
-        os.environ[LaunchableClientFactory.API_TOKEN_KEY] = 'v1:org_name/wp_name:token'
+        os.environ[LaunchableClientFactory.TOKEN_KEY] = 'v1:org_name/wp_name:token'
 
     def test_prepare(self):
         client = LaunchableClientFactory.prepare()
@@ -17,7 +17,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual('https://api.mercury.launchableinc.com', client.base_url)
         self.assertEqual('org_name', client.org_name)
         self.assertEqual('wp_name', client.workspace_name)
-        self.assertEqual('token', client.token)
+        self.assertEqual('v1:org_name/wp_name:token', client.token)
         self.assertEqual(requests, client.http)
 
     def test_prepare_with_base_url(self):
@@ -28,7 +28,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual('base_url', client.base_url)
         self.assertEqual('org_name', client.org_name)
         self.assertEqual('wp_name', client.workspace_name)
-        self.assertEqual('token', client.token)
+        self.assertEqual('v1:org_name/wp_name:token', client.token)
         self.assertEqual(requests, client.http)
 
 
