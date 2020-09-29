@@ -1,11 +1,11 @@
-import logging
+
 import traceback
 
 from nose.plugins import Plugin
-from launchable.client import LaunchableClientFactory
-from launchable.manager import parse_test, reorder
 
-log = logging.getLogger("nose.plugins.launchable")
+from launchable.client import LaunchableClientFactory
+from launchable.log import logger
+from launchable.manager import parse_test, reorder
 
 
 class Launchable(Plugin):
@@ -28,9 +28,9 @@ class Launchable(Plugin):
 
             reorder(test, order)
 
-            print("Tests have been successfully reordered")
+            print("Launchable has successfully reordered tests")
             return
         except Exception as error:
-            log.warning("An exception occurred while reordering. Executing tests in standard order: {}".format(error))
-            log.warning(traceback.format_exc())
+            logger.warning("An exception occurred while reordering. Executing tests in standard order: {}".format(error))
+            logger.warning(traceback.format_exc())
             return test

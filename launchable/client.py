@@ -1,7 +1,9 @@
 import os
-from launchable.version import __version__
 
 import requests
+
+from launchable.log import logger
+from launchable.version import __version__
 
 
 class LaunchableClientFactory:
@@ -55,12 +57,18 @@ class LaunchableClient:
             'X-Client-Version': __version__,
             'Authorization': 'Bearer {}'.format(self.token)
         }
-        body = self._request_body(test)
+        request_body = self._request_body(test)
 
-        res = self.http.post(url, headers=headers, json=body)
+        logger.debug("Request body: {}".format(request_body))
+
+        res = self.http.post(url, headers=headers, json=request_body)
+        logger.debug("Response status code: {}".format(res.status_code))
         res.raise_for_status()
 
-        return res.json()
+        response_body = res.json()
+        logger.debug("Response body: {}".format(response_body))
+
+        return response_body
 
     def _request_body(self, test):
         return {
