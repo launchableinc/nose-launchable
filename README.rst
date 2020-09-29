@@ -26,6 +26,7 @@ be provided from Launchable.
 Key              Description
 ================ ================================
 LAUNCHABLE_TOKEN A token to access Launchable API
+LAUNCHABLE_DEBUG Prints out debug logs
 ================ ================================
 
 Development

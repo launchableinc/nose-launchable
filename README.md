@@ -17,6 +17,7 @@ In addition to specifying the `--launchable` flag, you need to set the following
 |  Key  |  Description  |
 | ---- | ---- |
 |  LAUNCHABLE_TOKEN  |  A token to access Launchable API |
+|  LAUNCHABLE_DEBUG  |  Prints out debug logs |
 
 ## Development
 Pull requests are always appreciated. If you want to see whether your changes work as expected,  run the following command to install the plugin locally.
