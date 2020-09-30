@@ -1,5 +1,5 @@
 # nose-launchable
-A nose plugin to interact with [Launbhable](https://www.launchableinc.com/) API. 
+A nose plugin to interact with [Launchable](https://www.launchableinc.com/) API.
 
 ## Install
 

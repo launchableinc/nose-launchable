@@ -2,7 +2,7 @@ nose-launchable
 ===============
 
 A nose plugin to interact with
-`Launbhable <https://www.launchableinc.com/>`__ API.
+`Launchable <https://www.launchableinc.com/>`__ API.
 
 Install
 -------
