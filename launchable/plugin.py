@@ -43,8 +43,11 @@ class Launchable(Plugin):
 
             self._print("Test execution optimized by Launchable 🚀")
             return
-        except Exception as error:
-            logger.warning("An exception occurred while reordering. Executing tests in standard order: {}".format(error))
+        except Exception:
+            logger.warning("An unexpected error occurred while optimizing test execution. "
+                           "Please enable debugging by setting a `LAUNCHABLE_DEBUG=1` environment variable "
+                           "and send the logs to Launchable team. "
+                           "Test execution starts in standard order.")
             logger.warning(traceback.format_exc())
             return test
 
