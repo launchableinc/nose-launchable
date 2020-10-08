@@ -6,8 +6,8 @@ from nose.plugins import Plugin
 from nose.plugins.capture import Capture
 
 from launchable.client import LaunchableClientFactory
-from launchable.log import logger
 from launchable.manager import parse_test, reorder
+from launchable.log import logger
 
 
 class Launchable(Plugin):
@@ -21,11 +21,18 @@ class Launchable(Plugin):
 
     def options(self, parser, env):
         super(Launchable, self).options(parser, env=env)
-        parser.add_option("--launchable", action='store_true', dest="launchable", help="Enable Launchable API interaction")
+        parser.add_option("--launchable", action='store_true', dest="enabled", help="Enable Launchable API interaction")
+        parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number", help="CI/CD build number")
 
     def configure(self, options, conf):
         super(Launchable, self).configure(options, conf)
-        self.enabled = options.launchable
+        self.enabled = options.enabled
+        self.build_number = options.build_number
+
+        if self.enabled and self.build_number is None:
+            self.enabled = False
+            logger.warning("--launchable flag is specified but --launchable-build-number flag is missing. "
+                           "Please specify --launchable-build-number flag in order to enable nose-launchable plugin")
 
     def begin(self):
         self._stdout.append(sys.stdout)
