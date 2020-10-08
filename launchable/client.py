@@ -43,6 +43,27 @@ class LaunchableClient:
         self.workspace_name = workspace_name
         self.token = token
         self.http = http
+        self.build_number = None
+        self.test_session_id = None
+
+    def start(self, build_number):
+        self.build_number = build_number
+
+        url = "{}/intake/organizations/{}/workspaces/{}/suts/{}/test_sessions".format(
+            self.base_url,
+            self.org_name,
+            self.workspace_name,
+            self.build_number
+        )
+
+        res = self.http.post(url, headers=self._headers())
+        logger.debug("Response status code: {}".format(res.status_code))
+        res.raise_for_status()
+
+        response_body = res.json()
+        logger.debug("Response body: {}".format(response_body))
+
+        self.test_session_id = response_body['id']
 
     def infer(self, test):
         url = "{}/intake/organizations/{}/workspaces/{}/inference".format(
@@ -51,17 +72,11 @@ class LaunchableClient:
             self.workspace_name
         )
 
-        headers = {
-            'Content-Type': 'application/json',
-            'X-Client-Name': self.CLIENT_NAME,
-            'X-Client-Version': __version__,
-            'Authorization': 'Bearer {}'.format(self.token)
-        }
-        request_body = self._request_body(test)
+        request_body = self._infer_request_body(test)
 
         logger.debug("Request body: {}".format(request_body))
 
-        res = self.http.post(url, headers=headers, json=request_body)
+        res = self.http.post(url, headers=self._headers(), json=request_body)
         logger.debug("Response status code: {}".format(res.status_code))
         res.raise_for_status()
 
@@ -70,10 +85,16 @@ class LaunchableClient:
 
         return response_body
 
-    def _request_body(self, test):
+    def _headers(self):
+        return {
+            'Content-Type': 'application/json',
+            'X-Client-Name': self.CLIENT_NAME,
+            'X-Client-Version': __version__,
+            'Authorization': 'Bearer {}'.format(self.token)
+        }
+
+    def _infer_request_body(self, test):
         return {
             "test": test,
             "session": {"id": self.FICTITIOUS_ID, "subject": self.FICTITIOUS_ID, "flavors": {}},
         }
-
-

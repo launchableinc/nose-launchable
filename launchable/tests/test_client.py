@@ -33,6 +33,30 @@ class TestLaunchableClientFactory(unittest.TestCase):
 
 
 class TestLaunchableClient(unittest.TestCase):
+    def test_start(self):
+        mock_response = MagicMock(name="response")
+        mock_requests = MagicMock(name="requests")
+        mock_response.json.return_value = {'id': 1}
+        mock_requests.post.return_value = mock_response
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+        client.start("test_build_number")
+
+        expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/suts/test_build_number/test_sessions"
+        expected_headers = {
+            'Content-Type': 'application/json',
+            'X-Client-Name': LaunchableClient.CLIENT_NAME,
+            'X-Client-Version': __version__,
+            'Authorization': 'Bearer token'
+        }
+
+        mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers)
+        mock_response.raise_for_status.assert_called_once_with()
+        mock_response.json.assert_called_once_with()
+
+        self.assertEqual("test_build_number", client.build_number)
+        self.assertEqual(1, client.test_session_id)
+
 
     def test_infer(self):
         mock_response = MagicMock(name="response")
