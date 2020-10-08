@@ -1,5 +1,5 @@
-from logging import getLogger, DEBUG
 import os
+from logging import getLogger, DEBUG
 
 LAUNCHABLE_DEBUG_KEY = "LAUNCHABLE_DEBUG"
 
