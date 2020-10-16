@@ -1,4 +1,5 @@
 
+import os
 import sys
 import traceback
 
@@ -14,6 +15,8 @@ class Launchable(Plugin):
     name = "launchable"
     # Grab stdout before the capture plugin
     score = Capture.score + 1
+
+    REPORT_ERROR_KEY = "LAUNCHABLE_REPORT_ERROR"
 
     def __init__(self):
         super().__init__()
@@ -43,7 +46,10 @@ class Launchable(Plugin):
 
             self._print("Test execution optimized by Launchable 🚀")
             return
-        except Exception:
+        except Exception as e:
+            if os.getenv(self.REPORT_ERROR_KEY):
+                raise e
+
             logger.warning("An unexpected error occurred while optimizing test execution. "
                            "Please enable debugging by setting a `LAUNCHABLE_DEBUG=1` environment variable "
                            "and send the logs to Launchable team. "
