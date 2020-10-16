@@ -16,7 +16,7 @@ class Launchable(Plugin):
     # Grab stdout before the capture plugin
     score = Capture.score + 1
 
-    RAISE_ERROR_KEY = "LAUNCHABLE_RAISE_ERROR"
+    REPORT_ERROR_KEY = "LAUNCHABLE_REPORT_ERROR"
 
     def __init__(self):
         super().__init__()
@@ -47,7 +47,7 @@ class Launchable(Plugin):
             self._print("Test execution optimized by Launchable 🚀")
             return
         except Exception as e:
-            if os.getenv(self.RAISE_ERROR_KEY):
+            if os.getenv(self.REPORT_ERROR_KEY):
                 raise e
 
             logger.warning("An unexpected error occurred while optimizing test execution. "
