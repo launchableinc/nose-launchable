@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from nose.case import Test
+
 from launchable.manager import parse_test, reorder
 
 
