@@ -15,6 +15,7 @@ from launchable.case_event import CaseEvent
 from launchable.uploader import UploaderFactory
 from launchable.log import logger
 
+BUILD_NUMBER_KEY = "LAUNCHABLE_BUILD_NUMBER"
 
 class Launchable(Plugin):
     name = "launchable"
@@ -37,7 +38,7 @@ class Launchable(Plugin):
     def configure(self, options, conf):
         super(Launchable, self).configure(options, conf)
         self.enabled = options.enabled
-        self.build_number = options.build_number
+        self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
 
         if self.enabled and self.build_number is None:
             self.enabled = False
