@@ -44,7 +44,7 @@ class Launchable(Plugin):
 
             reorder(test, order)
 
-            self._print("Test execution optimized by Launchable 🚀")
+            self._print("Test execution optimized by Launchable")
             return
         except Exception as e:
             if os.getenv(self.REPORT_ERROR_KEY):
