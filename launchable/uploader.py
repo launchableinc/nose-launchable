@@ -26,10 +26,11 @@ class UploaderFactory:
         return os.getenv(cls.FAILURE_REPORT_INTERVAL_KEY) or cls.DEFAULT_FAILURE_REPORT_INTERVAL
 
 
-class Uploader:
-    MAX_BATCH_SIZE = 500
+DEFAULT_MAX_BATCH_SIZE = 500
 
-    def __init__(self, client, success_interval, failure_interval):
+class Uploader:
+
+    def __init__(self, client, success_interval, failure_interval, max_batch_size=DEFAULT_MAX_BATCH_SIZE):
         self.client = client
 
         self.success_queue = queue.Queue()
@@ -37,6 +38,8 @@ class Uploader:
 
         self.success_worker = threading.Thread(target=self._worker, args=(self.success_queue, success_interval,))
         self.failure_worker = threading.Thread(target=self._worker, args=(self.failure_queue, failure_interval,))
+
+        self.max_batch_size = max_batch_size
 
     def start(self):
         self.success_worker.start()
@@ -67,7 +70,7 @@ class Uploader:
         while wait:
             sleep(interval)
 
-            size = min(q.qsize(), self.MAX_BATCH_SIZE)
+            size = min(q.qsize(), self.max_batch_size)
 
             results = []
             for _ in range(size):

@@ -107,3 +107,27 @@ class TestUploader(unittest.TestCase):
         self.assertEqual(["f1", "f2", "f3", "f4", "f5", "f6", "s1", "s2", "s3", "s4", "s5", "s6"], sorted(_extract_args(client.upload_events)))
 
 
+    def test_integration_enqueue_chunked_batch(self):
+        client = MagicMock(name="client")
+
+        uploader = Uploader(client, 0.1, 0.1, 3)
+        uploader.start()
+
+        successes = ["s1", "s2", "s3", "s4", "s5", "s6"]
+
+        for s in successes:
+            uploader.enqueue_success(s)
+
+        failures = ["f1", "f2", "f3", "f4", "f5", "f6"]
+
+        for f in failures:
+            uploader.enqueue_failure(f)
+
+        # send half of events
+        sleep(0.1)
+
+        self.assertEqual(["f1", "f2", "f3", "s1", "s2", "s3"], sorted(_extract_args(client.upload_events)))
+
+        uploader.join()
+
+        self.assertEqual(["f1", "f2", "f3", "f4", "f5", "f6", "s1", "s2", "s3", "s4", "s5", "s6"], sorted(_extract_args(client.upload_events)))
