@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from launchable.uploader import UploaderFactory, Uploader
+from time import sleep
 
 
 class TestUploaderFactory(unittest.TestCase):
@@ -71,5 +72,38 @@ class TestUploader(unittest.TestCase):
 
         self.assertEqual(["f1", "f2", "f3", "s1", "s2", "s3"], sorted(_extract_args(client.upload_events)))
 
+    def test_integration_enqueue_with_sleep(self):
+        client = MagicMock(name="client")
+
+        uploader = Uploader(client, 0.1, 0.1)
+        uploader.start()
+
+        successes = ["s1", "s2", "s3"]
+
+        for s in successes:
+            uploader.enqueue_success(s)
+
+        failures = ["f1", "f2", "f3"]
+
+        for f in failures:
+            uploader.enqueue_failure(f)
+
+        sleep(0.2)
+
+        self.assertEqual(["f1", "f2", "f3", "s1", "s2", "s3"], sorted(_extract_args(client.upload_events)))
+
+        successes = ["s4", "s5", "s6"]
+
+        for s in successes:
+            uploader.enqueue_success(s)
+
+        failures = ["f4", "f5", "f6"]
+
+        for f in failures:
+            uploader.enqueue_failure(f)
+
+        uploader.join()
+
+        self.assertEqual(["f1", "f2", "f3", "f4", "f5", "f6", "s1", "s2", "s3", "s4", "s5", "s6"], sorted(_extract_args(client.upload_events)))
 
 
