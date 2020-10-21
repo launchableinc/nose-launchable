@@ -3,4 +3,4 @@
 dist/
 build/
 launchable/__pycache__
-launchable/tests/__pycache__
+tests/__pycache__
