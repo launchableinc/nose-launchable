@@ -38,14 +38,16 @@ class Launchable(Plugin):
             t = parse_test(test)
 
             launchable_client = LaunchableClientFactory.prepare()
-            self._print("Getting optimized test execution order from Launchable...")
+            self._print("Getting optimized test execution order from Launchable...\n")
             order = launchable_client.infer(t)
-            self._print("Received optimized test execution order from Launchable")
+            self._print("Received optimized test execution order from Launchable\n")
 
             reorder(test, order)
 
-            self._print("Test execution optimized by Launchable 🚀")
-            return
+            self._print("Test execution optimized by Launchable ")
+            # A rocket emoji
+            self._print("\U0001f680\n")
+            return test
         except Exception as e:
             if os.getenv(self.REPORT_ERROR_KEY):
                 raise e
@@ -59,4 +61,4 @@ class Launchable(Plugin):
 
     # Bypass Capture plugin
     def _print(self, message):
-        self._stdout[0].write(message + "\n")
+        self._stdout[0].write(message)
