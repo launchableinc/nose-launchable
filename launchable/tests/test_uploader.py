@@ -124,7 +124,7 @@ class TestUploader(unittest.TestCase):
             uploader.enqueue_failure(f)
 
         # send half of events
-        sleep(0.1)
+        sleep(0.2)
 
         self.assertEqual(["f1", "f2", "f3", "s1", "s2", "s3"], sorted(_extract_args(client.upload_events)))
 
