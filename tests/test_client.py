@@ -3,7 +3,9 @@ import unittest
 from unittest.mock import MagicMock
 
 import requests
+
 from launchable.client import LaunchableClientFactory, LaunchableClient
+from launchable.case_event import CaseEvent
 from launchable.version import __version__
 
 
@@ -33,6 +35,30 @@ class TestLaunchableClientFactory(unittest.TestCase):
 
 
 class TestLaunchableClient(unittest.TestCase):
+    def test_start(self):
+        mock_response = MagicMock(name="response")
+        mock_requests = MagicMock(name="requests")
+        mock_response.json.return_value = {'id': 1}
+        mock_requests.post.return_value = mock_response
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+        client.start("test_build_number")
+
+        expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/builds/test_build_number/test_sessions"
+        expected_headers = {
+            'Content-Type': 'application/json',
+            'X-Client-Name': LaunchableClient.CLIENT_NAME,
+            'X-Client-Version': __version__,
+            'Authorization': 'Bearer token'
+        }
+
+        mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers)
+        mock_response.raise_for_status.assert_called_once_with()
+        mock_response.json.assert_called_once_with()
+
+        self.assertEqual("test_build_number", client.build_number)
+        self.assertEqual(1, client.test_session_id)
+
 
     def test_infer(self):
         mock_response = MagicMock(name="response")
@@ -67,3 +93,54 @@ class TestLaunchableClient(unittest.TestCase):
         mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers, json=expected_body)
         mock_response.raise_for_status.assert_called_once_with()
         mock_response.json.assert_called_once_with()
+
+    def test_upload_events(self):
+        mock_response = MagicMock(name="response")
+        mock_requests = MagicMock(name="requests")
+        mock_requests.post.return_value = mock_response
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+
+        events = [
+            CaseEvent("test1", 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
+            CaseEvent("test2", 0.2, CaseEvent.TEAT_FAILED, "stdout2", "stderr2")
+        ]
+
+        client.build_number = 1
+        client.test_session_id = 2
+
+        client.upload_events(events)
+
+        expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/builds/1/test_sessions/2/events"
+        expected_headers = {
+            'Content-Type': 'application/json',
+            'X-Client-Name': LaunchableClient.CLIENT_NAME,
+            'X-Client-Version': __version__,
+            'Authorization': 'Bearer token'
+        }
+
+        expected_body = {
+            "events": [
+                {
+                    "type": "case",
+                    "testName": "test1",
+                    "duration": 0.1,
+                    "status": CaseEvent.TEST_PASSED,
+                    "stdout": "stdout1",
+                    "stderr": "stderr1",
+                    "created_at": events[0].created_at
+                },
+                {
+                    "type": "case",
+                    "testName": "test2",
+                    "duration": 0.2,
+                    "status": CaseEvent.TEAT_FAILED,
+                    "stdout": "stdout2",
+                    "stderr": "stderr2",
+                    "created_at": events[1].created_at,
+                }
+            ]
+        }
+
+        mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers, json=expected_body)
+        mock_response.raise_for_status.assert_called_once_with()
