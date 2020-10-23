@@ -27,6 +27,7 @@ class Launchable(Plugin):
 
     def __init__(self):
         super().__init__()
+
         self._capture_stack = []
         self._currentStdout = None
         self._currentStderr = None
