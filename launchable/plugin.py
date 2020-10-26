@@ -93,7 +93,8 @@ class Launchable(Plugin):
 
     @protect
     def addError(self, test, err, capt=None):
-        self._addResult(test, CaseEvent.TEAT_FAILED, self._uploader.enqueue_failure)
+        if err is not ImportError:
+            self._addResult(test, CaseEvent.TEAT_FAILED, self._uploader.enqueue_failure)
 
     @protect
     def addFailure(self, test, err, capt=None, tb_info=None):
