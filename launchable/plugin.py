@@ -8,7 +8,6 @@ from types import ModuleType
 from nose.plugins import Plugin
 from nose.plugins.capture import Capture
 from nose.plugins.xunit import Tee
-from nose.util import test_address
 
 from launchable.case_event import CaseEvent
 from launchable.client import LaunchableClientFactory
@@ -137,9 +136,11 @@ class Launchable(Plugin):
 
     def _addResult(self, test, status, queueing):
         def get_test_name(t):
-            file_path, module, name = test_address(t.test)
-            # it return such as tests/dir1/test1.py#test1#test_evens
-            return "#".join([os.path.relpath(file_path), module, name])
+            if isinstance(t.context, ModuleType):
+                return t.context.__name__
+
+            # context is a class
+            return t.context.__module__
 
         logger.debug("Adding a test result: test: {}, context: {}".format(test, test.context))
         result = CaseEvent(get_test_name(test), self._timeTaken(), status, self._getCapturedStdout(),
