@@ -138,7 +138,7 @@ class Launchable(Plugin):
     def _addResult(self, test, status, queueing):
         # return such as tests/dir1/test1.py#test1#test_evens
         def get_test_name(t):
-            file_path, module, = test_address(t.test)
+            file_path, module, _ = test_address(t.test)
             # If the test was FunctionTestCase (aka generated test), the name would include parameters such as test_evens(0, 0)
             name = t.test.id().split(".")[-1]
 
