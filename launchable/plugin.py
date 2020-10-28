@@ -3,11 +3,11 @@ import os
 import sys
 from io import StringIO
 from time import time
-from types import ModuleType
 
 from nose.plugins import Plugin
 from nose.plugins.capture import Capture
 from nose.plugins.xunit import Tee
+from nose.util import test_address
 
 from launchable.case_event import CaseEvent
 from launchable.client import LaunchableClientFactory
@@ -92,7 +92,9 @@ class Launchable(Plugin):
 
     @protect
     def addError(self, test, err, capt=None):
-        self._addResult(test, CaseEvent.TEAT_FAILED, self._uploader.enqueue_failure)
+        type, value, traceback = err
+        if type not in (ImportError, ValueError):
+            self._addResult(test, CaseEvent.TEAT_FAILED, self._uploader.enqueue_failure)
 
     @protect
     def addFailure(self, test, err, capt=None, tb_info=None):
@@ -135,12 +137,13 @@ class Launchable(Plugin):
         return ''
 
     def _addResult(self, test, status, queueing):
+        # return such as tests/dir1/test1.py#test1#test_evens
         def get_test_name(t):
-            if isinstance(t.context, ModuleType):
-                return t.context.__name__
+            file_path, module, _ = test_address(t.test)
+            # If the test was FunctionTestCase (aka generated test), the name would include parameters such as test_evens(0, 0)
+            name = t.test.id().split(".")[-1]
 
-            # context is a class
-            return t.context.__module__
+            return "#".join([os.path.relpath(file_path), module, name])
 
         logger.debug("Adding a test result: test: {}, context: {}".format(test, test.context))
         result = CaseEvent(get_test_name(test), self._timeTaken(), status, self._getCapturedStdout(),
