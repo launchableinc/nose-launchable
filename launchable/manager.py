@@ -1,7 +1,9 @@
+import os
 from types import ModuleType
 
 from nose.failure import Failure
 from nose.suite import ContextSuite
+from nose.util import test_address
 
 from launchable.log import logger
 
@@ -105,8 +107,8 @@ def _get_test_name(suite):
     if not _is_leaf(suite):
         raise RuntimeError("_get_test_name method should run only against a leaf. suite: {}".format(suite))
 
-    if isinstance(suite.context, ModuleType):
-        return suite.context.__name__
+    if suite.context is Failure:
+        return "failure"
 
-    # context is a class
-    return suite.context.__module__
+    file_path, module, _ = test_address(suite.context)
+    return "#".join([os.path.relpath(file_path), module])
