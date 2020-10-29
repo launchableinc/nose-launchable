@@ -8,7 +8,7 @@ echo "__version__ = '$next'" > launchable/version.py
 git commit -am "Bumps up to v$next"
 git tag "v$next"
 
-git push origin main
+git push origin v0.0.9
 git push origin --tags
 
 twine upload --repository pypi dist/*
