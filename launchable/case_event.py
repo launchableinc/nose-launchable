@@ -4,7 +4,7 @@ import datetime
 class CaseEvent:
     EVENT_TYPE = "case"
     TEST_PASSED = 1
-    TEAT_FAILED = 0
+    TEST_FAILED = 0
 
     def __init__(self, test_name, duration, status, stdout, stderr):
         self.testName = test_name

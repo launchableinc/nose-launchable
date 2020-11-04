@@ -94,11 +94,11 @@ class Launchable(Plugin):
     def addError(self, test, err, capt=None):
         type, value, traceback = err
         if type not in (ImportError, ValueError):
-            self._addResult(test, CaseEvent.TEAT_FAILED, self._uploader.enqueue_failure)
+            self._addResult(test, CaseEvent.TEST_FAILED, self._uploader.enqueue_failure)
 
     @protect
     def addFailure(self, test, err, capt=None, tb_info=None):
-        self._addResult(test, CaseEvent.TEAT_FAILED, self._uploader.enqueue_failure)
+        self._addResult(test, CaseEvent.TEST_FAILED, self._uploader.enqueue_failure)
 
     @protect
     def addSuccess(self, test, capt=None):
