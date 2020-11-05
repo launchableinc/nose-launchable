@@ -145,8 +145,9 @@ class Launchable(Plugin):
 
             return "#".join([os.path.relpath(file_path), module, name])
 
-        logger.debug("Adding a test result: test: {}, context: {}".format(test, test.context))
-        result = CaseEvent(get_test_name(test), self._timeTaken(), status, self._getCapturedStdout(),
+        test_name = get_test_name(test)
+        logger.debug("Adding a test result: test: {}, context: {}, test_name: {}".format(test, test.context, test_name))
+        result = CaseEvent(test_name, self._timeTaken(), status, self._getCapturedStdout(),
                            self._getCapturedStderr())
         queueing(result)
 
