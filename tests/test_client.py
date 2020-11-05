@@ -103,7 +103,7 @@ class TestLaunchableClient(unittest.TestCase):
 
         events = [
             CaseEvent("test1", 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
-            CaseEvent("test2", 0.2, CaseEvent.TEAT_FAILED, "stdout2", "stderr2")
+            CaseEvent("test2", 0.2, CaseEvent.TEST_FAILED, "stdout2", "stderr2")
         ]
 
         client.build_number = 1
@@ -134,7 +134,7 @@ class TestLaunchableClient(unittest.TestCase):
                     "type": "case",
                     "testName": "test2",
                     "duration": 0.2,
-                    "status": CaseEvent.TEAT_FAILED,
+                    "status": CaseEvent.TEST_FAILED,
                     "stdout": "stdout2",
                     "stderr": "stderr2",
                     "created_at": events[1].created_at,
