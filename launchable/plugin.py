@@ -140,8 +140,17 @@ class Launchable(Plugin):
         # return such as tests/dir1/test1.py#test1#test_evens
         def get_test_name(t):
             file_path, module, _ = test_address(t.test)
+
+            is_class_test = type(t.context) is type
+
             # If the test was FunctionTestCase (aka generated test), the name would include parameters such as test_evens(0, 0)
-            name = t.test.id().split(".")[-1]
+            ids = t.test.id().split(".")
+
+            # If the test context is a class, we need a class name too to uniquely identify each test
+            if is_class_test:
+                name = ".".join([ids[-2], ids[-1]])
+            else:
+                name = ids[-1]
 
             return "#".join([os.path.relpath(file_path), module, name])
 
