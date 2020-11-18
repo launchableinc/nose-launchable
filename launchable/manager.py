@@ -110,5 +110,5 @@ def _get_test_name(suite):
     if suite.context is Failure:
         return "failure"
 
-    file_path, module, _ = test_address(suite.context)
-    return "#".join([os.path.relpath(file_path), module])
+    file_path, _, _ = test_address(suite.context)
+    return os.path.relpath(file_path)

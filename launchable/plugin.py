@@ -6,7 +6,7 @@ from time import time
 
 from nose.plugins import Plugin
 from nose.plugins.capture import Capture
-from nose.plugins.xunit import Tee
+from nose.plugins.xunit import Tee, id_split
 from nose.util import test_address
 
 from launchable.case_event import CaseEvent
@@ -137,22 +137,20 @@ class Launchable(Plugin):
         return ''
 
     def _addResult(self, test, status, queueing):
-        # return such as tests/dir1/test1.py#test1#test_evens
+        # Return file_path#function_name as a testName
+        # If a test is a class test, return file_path#class_name.function_name
         def get_test_name(t):
-            file_path, module, _ = test_address(t.test)
+            file_path, _, _ = test_address(t.test)
+            head, tail = id_split(t.test.id())
 
+            # If the test context is a class, we need a class name too to uniquely identify each test in the module
             is_class_test = type(t.context) is type
-
-            # If the test was FunctionTestCase (aka generated test), the name would include parameters such as test_evens(0, 0)
-            ids = t.test.id().split(".")
-
-            # If the test context is a class, we need a class name too to uniquely identify each test
             if is_class_test:
-                name = ".".join([ids[-2], ids[-1]])
+                name = ".".join([head.rsplit(".", 1)[-1], tail])
             else:
-                name = ids[-1]
+                name = tail
 
-            return "#".join([os.path.relpath(file_path), module, name])
+            return "#".join([os.path.relpath(file_path), name])
 
         test_name = get_test_name(test)
         logger.debug("Adding a test result: test: {}, context: {}, test_name: {}".format(test, test.context, test_name))

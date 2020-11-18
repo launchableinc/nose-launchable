@@ -21,14 +21,14 @@ class TestManager(unittest.TestCase):
                     'id': str(id(self.mock_suite0)),
                     'children':
                         [
-                            {'type': 'testCaseNode', 'testName': 'tests/resources/module0.py#tests.resources.module0'},
+                            {'type': 'testCaseNode', 'testName': 'tests/resources/module0.py'},
                             {
                                 'type': 'treeNode',
                                 'id': str(id(self.mock_suite1)),
                                 'children':
                                     [
-                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module1.py#tests.resources.module1'},
-                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module2.py#tests.resources.module2'}
+                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module1.py'},
+                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module2.py'}
                                     ],
                             }
                         ],
@@ -56,14 +56,14 @@ class TestManager(unittest.TestCase):
                     'id': str(id(self.mock_suite0)),
                     'children':
                         [
-                            {'type': 'testCaseNode', 'testName': 'tests/resources/module0.py#tests.resources.module0'},
+                            {'type': 'testCaseNode', 'testName': 'tests/resources/module0.py'},
                             {
                                 'type': 'treeNode',
                                 'id': str(id(self.mock_suite1)),
                                 'children':
                                     [
-                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module1.py#tests.resources.module1'},
-                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module2.py#tests.resources.module2'}
+                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module1.py'},
+                                        {'type': 'testCaseNode', 'testName': 'tests/resources/module2.py'}
                                     ],
                             }
                         ],
