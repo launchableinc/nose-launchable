@@ -22,13 +22,19 @@ In addition to specifying the ``--launchable`` flag, you need to set the
 following environment variables in your environment. These values should
 be provided from Launchable.
 
-======================= ================================
-Key                     Description
-======================= ================================
-LAUNCHABLE_TOKEN        A token to access Launchable API
-LAUNCHABLE_BUILD_NUMBER A CI/CD build number
-LAUNCHABLE_DEBUG        Prints out debug logs
-======================= ================================
++-----------------------------------+-----------------------------------+
+| Key                               | Description                       |
++===================================+===================================+
+| LAUNCHABLE_BASE_URL               | A Launchable API URL. Default is  |
+|                                   | ``https:                          |
+|                                   | //api.mercury.launchableinc.com`` |
++-----------------------------------+-----------------------------------+
+| LAUNCHABLE_BUILD_NUMBER           | A CI/CD build number              |
++-----------------------------------+-----------------------------------+
+| LAUNCHABLE_DEBUG                  | Prints out debug logs             |
++-----------------------------------+-----------------------------------+
+| LAUNCHABLE_TOKEN                  | A token to access Launchable API  |
++-----------------------------------+-----------------------------------+
 
 Development
 -----------
