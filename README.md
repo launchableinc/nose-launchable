@@ -16,9 +16,10 @@ In addition to specifying the `--launchable` flag, you need to set the following
 
 |  Key  |  Description  |
 | ---- | ---- |
-|  LAUNCHABLE_TOKEN  |  A token to access Launchable API  |
+|  LAUNCHABLE_BASE_URL  |  A Launchable API URL. Default is `https://api.mercury.launchableinc.com` |
 |  LAUNCHABLE_BUILD_NUMBER  |  A CI/CD build number  |
 |  LAUNCHABLE_DEBUG  |  Prints out debug logs |
+|  LAUNCHABLE_TOKEN  |  A token to access Launchable API  |
 
 ## Development
 Pull requests are always appreciated. If you want to see whether your changes work as expected,  run the following command to install the plugin locally.
