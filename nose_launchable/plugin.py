@@ -18,6 +18,7 @@ from nose_launchable.uploader import UploaderFactory
 
 BUILD_NUMBER_KEY = "LAUNCHABLE_BUILD_NUMBER"
 
+
 class Launchable(Plugin):
     name = "launchable"
     # Grab override sys.stdout after the capture plugin

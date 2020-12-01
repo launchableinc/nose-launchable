@@ -31,7 +31,7 @@ setup(
     ],
     entry_points={
         'nose.plugins.0.10': [
-            'launchable = launchable:Launchable'
+            'nose_launchable = nose_launchable:Launchable'
         ],
     },
 )
