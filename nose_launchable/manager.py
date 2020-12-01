@@ -5,7 +5,7 @@ from nose.failure import Failure
 from nose.suite import ContextSuite
 from nose.util import test_address
 
-from launchable.log import logger
+from nose_launchable.log import logger
 
 TREE_TYPE = "tree"
 TREE_NODE_TYPE = "treeNode"

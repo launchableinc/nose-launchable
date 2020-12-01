@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup, find_packages
 
-from launchable.version import __version__
+from nose_launchable.version import __version__
 
 
 def _read(file):

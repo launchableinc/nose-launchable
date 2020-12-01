@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-from launchable.uploader import UploaderFactory, Uploader
+from nose_launchable.uploader import UploaderFactory, Uploader
 from time import sleep
 
 
