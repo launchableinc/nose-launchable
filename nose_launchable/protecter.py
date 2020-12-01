@@ -2,7 +2,7 @@ import os
 import traceback
 from functools import wraps
 
-from launchable.log import logger
+from nose_launchable.log import logger
 
 REPORT_ERROR_KEY = "LAUNCHABLE_REPORT_ERROR"
 

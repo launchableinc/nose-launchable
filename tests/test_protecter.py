@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from launchable.protecter import protect
+from nose_launchable.protecter import protect
 
 
 class TestProtector(unittest.TestCase):

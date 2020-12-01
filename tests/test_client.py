@@ -4,9 +4,9 @@ from unittest.mock import MagicMock
 
 import requests
 
-from launchable.client import LaunchableClientFactory, LaunchableClient
-from launchable.case_event import CaseEvent
-from launchable.version import __version__
+from nose_launchable.client import LaunchableClientFactory, LaunchableClient
+from nose_launchable.case_event import CaseEvent
+from nose_launchable.version import __version__
 
 
 class TestLaunchableClientFactory(unittest.TestCase):

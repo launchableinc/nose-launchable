@@ -2,8 +2,8 @@ import os
 
 import requests
 
-from launchable.log import logger
-from launchable.version import __version__
+from nose_launchable.log import logger
+from nose_launchable.version import __version__
 
 
 class LaunchableClientFactory:

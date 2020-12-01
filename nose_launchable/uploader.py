@@ -3,7 +3,7 @@ import queue
 import threading
 from time import sleep
 
-from launchable.protecter import protect
+from nose_launchable.protecter import protect
 
 
 class UploaderFactory:

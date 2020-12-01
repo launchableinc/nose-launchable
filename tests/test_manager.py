@@ -4,7 +4,7 @@ from tests.resources.module1 import MockTestClass1
 from tests.resources.module2 import MockTestClass2
 
 from nose.suite import ContextSuite
-from launchable.manager import parse_test, reorder
+from nose_launchable.manager import parse_test, reorder
 
 
 class TestManager(unittest.TestCase):

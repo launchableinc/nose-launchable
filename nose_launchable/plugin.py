@@ -9,12 +9,12 @@ from nose.plugins.capture import Capture
 from nose.plugins.xunit import Tee, id_split
 from nose.util import test_address
 
-from launchable.case_event import CaseEvent
-from launchable.client import LaunchableClientFactory
-from launchable.log import logger
-from launchable.manager import parse_test, reorder
-from launchable.protecter import protect
-from launchable.uploader import UploaderFactory
+from nose_launchable.case_event import CaseEvent
+from nose_launchable.client import LaunchableClientFactory
+from nose_launchable.log import logger
+from nose_launchable.manager import parse_test, reorder
+from nose_launchable.protecter import protect
+from nose_launchable.uploader import UploaderFactory
 
 BUILD_NUMBER_KEY = "LAUNCHABLE_BUILD_NUMBER"
 
