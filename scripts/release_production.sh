@@ -1,4 +1,4 @@
-current=`cat launchable/version.py`
+current=`cat nose_launchable/version.py`
 
 read -p "Next version (current version: $current): " next
 echo "__version__ = '$next'" > launchable/version.py
