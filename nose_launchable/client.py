@@ -33,8 +33,6 @@ class LaunchableClientFactory:
 
 
 class LaunchableClient:
-    # TODO: Stop using a fictitious id once the server starts dynamic reordering
-    FICTITIOUS_ID = "1"
     CLIENT_NAME = "nose-launchable"
 
     def __init__(self, base_url, org_name, workspace_name, token, http):
@@ -111,7 +109,7 @@ class LaunchableClient:
     def _infer_request_body(self, test):
         return {
             "test": test,
-            "session": {"id": self.FICTITIOUS_ID, "subject": self.FICTITIOUS_ID, "flavors": {}},
+            "session": {"id": self.test_session_id, "subject": self.build_number, "flavors": {}},
         }
 
     def _upload_request_body(self, events):

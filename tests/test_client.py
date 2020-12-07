@@ -66,6 +66,8 @@ class TestLaunchableClient(unittest.TestCase):
         mock_requests.post.return_value = mock_response
 
         client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+        client.build_number = "test"
+        client.test_session_id = 1
 
         test = {
             "type": "tree",
@@ -87,7 +89,7 @@ class TestLaunchableClient(unittest.TestCase):
 
         expected_body = {
             'test': {'type': 'tree', 'root': {'type': 'testCaseNode', 'testName': 'class0.test0'}},
-            "session": {'id': '1', 'subject': '1', 'flavors': {}},
+            "session": {'id': 1, 'subject': 'test', 'flavors': {}},
         }
 
         mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers, json=expected_body)
