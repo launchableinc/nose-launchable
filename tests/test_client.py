@@ -1,11 +1,12 @@
 import os
+import subprocess
 import unittest
 from unittest.mock import MagicMock
 
 import requests
 
-from nose_launchable.client import LaunchableClientFactory, LaunchableClient
 from nose_launchable.case_event import CaseEvent
+from nose_launchable.client import LaunchableClientFactory, LaunchableClient
 from nose_launchable.version import __version__
 
 
@@ -21,6 +22,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual('wp_name', client.workspace_name)
         self.assertEqual('v1:org_name/wp_name:token', client.token)
         self.assertEqual(requests, client.http)
+        self.assertEqual(subprocess, client.process)
 
     def test_prepare_with_base_url(self):
         os.environ[LaunchableClientFactory.BASE_URL_KEY] = 'base_url'
@@ -32,6 +34,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual('wp_name', client.workspace_name)
         self.assertEqual('v1:org_name/wp_name:token', client.token)
         self.assertEqual(requests, client.http)
+        self.assertEqual(subprocess, client.process)
 
 
 class TestLaunchableClient(unittest.TestCase):
@@ -41,7 +44,9 @@ class TestLaunchableClient(unittest.TestCase):
         mock_response.json.return_value = {'id': 1}
         mock_requests.post.return_value = mock_response
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+        mock_subprocess = MagicMock(name="subprecess")
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
         client.start("test_build_number")
 
         expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/builds/test_build_number/test_sessions"
@@ -60,12 +65,14 @@ class TestLaunchableClient(unittest.TestCase):
         self.assertEqual(1, client.test_session_id)
 
 
-    def test_infer(self):
+    def test_reorder(self):
         mock_response = MagicMock(name="response")
         mock_requests = MagicMock(name="requests")
         mock_requests.post.return_value = mock_response
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+        mock_subprocess = MagicMock(name="subprecess")
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
         client.build_number = "test"
         client.test_session_id = 1
 
@@ -77,7 +84,7 @@ class TestLaunchableClient(unittest.TestCase):
             }
         }
 
-        client.infer(test)
+        client.reorder(test)
 
         expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/inference"
         expected_headers = {
@@ -96,12 +103,55 @@ class TestLaunchableClient(unittest.TestCase):
         mock_response.raise_for_status.assert_called_once_with()
         mock_response.json.assert_called_once_with()
 
+    def test_subset_success(self):
+        mock_output = MagicMock(name="output")
+        mock_subprocess = MagicMock(name="subprecess")
+
+        mock_subprocess.run.return_value = mock_output
+        mock_subprocess.PIPE = "PIPE"
+        # Success
+        mock_output.returncode = 0
+        mock_output.stdout = "tests/test2.py\ntests/test1.py\n"
+
+        mock_requests = MagicMock(name="requests")
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.test_session_id = 1
+
+        got = client.subset(["tests/test1.py", "tests/test2.py"], "10")
+
+        expected_command = ['launchable', 'subset', '--session', '/test_sessions/1', '--target', '10%', 'file']
+        expected_input = 'tests/test1.py\ntests/test2.py'
+
+        mock_subprocess.run.assert_called_once_with(expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
+        self.assertEqual(['tests/test2.py', 'tests/test1.py'], got)
+
+    def test_subset_failure(self):
+        mock_output = MagicMock(name="output")
+        mock_subprocess = MagicMock(name="subprecess")
+
+        mock_subprocess.run.return_value = mock_output
+        mock_subprocess.PIPE = "PIPE"
+        # Fail
+        mock_output.returncode = 1
+        mock_output.error = "error"
+
+        mock_requests = MagicMock(name="requests")
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.test_session_id = 1
+
+        with self.assertRaises(RuntimeError):
+            client.subset(["tests/test1.py", "tests/test2.py"], "10")
+
     def test_upload_events(self):
         mock_response = MagicMock(name="response")
         mock_requests = MagicMock(name="requests")
         mock_requests.post.return_value = mock_response
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests)
+        mock_subprocess = MagicMock(name="subprecess")
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
 
         events = [
             CaseEvent("test1", 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),

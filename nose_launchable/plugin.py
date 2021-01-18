@@ -12,7 +12,7 @@ from nose.util import test_address
 from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory
 from nose_launchable.log import logger
-from nose_launchable.manager import parse_test, reorder
+from nose_launchable.manager import parse_test, get_test_names, reorder, subset
 from nose_launchable.protecter import protect
 from nose_launchable.uploader import UploaderFactory
 
@@ -34,18 +34,35 @@ class Launchable(Plugin):
 
     def options(self, parser, env):
         super(Launchable, self).options(parser, env=env)
-        parser.add_option("--launchable", action='store_true', dest="enabled", help="Enable Launchable API interaction")
+        parser.add_option("--launchable", action='store_true', dest="enabled", help="Enable Launchable reordering")
+        parser.add_option("--launchable-reorder", action='store_true', dest="reorder_enabled", help="Enable Launchable reordering")
+        parser.add_option("--launchable-subset", action='store_true', dest="subset_enabled", help="Enable Launchable subsetting")
         parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number", help="CI/CD build number")
+        parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target", help="Target percentage of subset")
 
     def configure(self, options, conf):
         super(Launchable, self).configure(options, conf)
-        self.enabled = options.enabled
+
+        self.reorder_enabled = options.enabled or options.reorder_enabled or False
+        self.subset_enabled = options.subset_enabled or False
         self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
+        self.subset_target = options.subset_target
+
+        if not (self.reorder_enabled ^ self.subset_enabled):
+            self.enabled = False
+            logger.warning("Please specify either --launchable flag or --launchable-subset flag")
+            return
+
+        self.enabled = True
 
         if self.enabled and self.build_number is None:
             self.enabled = False
-            logger.warning("--launchable flag is specified but --launchable-build-number flag is missing. "
-                           "Please specify --launchable-build-number flag in order to enable nose-launchable plugin")
+            logger.warning("Please specify --launchable-build-number flag in order to enable nose-launchable plugin")
+
+        if self.subset_enabled and self.subset_target is None:
+            self.enabled = False
+            logger.warning("Please specify --launchable-subset-target flag to run subset")
+
 
     @protect
     def begin(self):
@@ -58,13 +75,12 @@ class Launchable(Plugin):
 
     @protect
     def prepareTest(self, test):
-        t = parse_test(test)
-
         self._print("Getting optimized test execution order from Launchable...\n")
-        order = self._client.infer(t)
-        self._print("Received optimized test execution order from Launchable\n")
+        if self.reorder_enabled:
+            self._reorder(test)
 
-        reorder(test, order)
+        if self.subset_enabled:
+            self._subset(test)
 
         self._print("Test execution optimized by Launchable ")
         # A rocket emoji
@@ -111,6 +127,21 @@ class Launchable(Plugin):
             self._endCapture()
 
         self._uploader.join()
+
+    def _reorder(self, test):
+        tree = parse_test(test)
+
+        order = self._client.reorder(tree)
+
+        reorder(test, order)
+
+    def _subset(self, test):
+        test_names = get_test_names(test)
+
+        order = self._client.subset(test_names, self.subset_target)
+
+        # Create a dictionary maps test_name to its index
+        subset(test, {o: i for i, o in enumerate(order)})
 
     def _startCapture(self):
         self._capture_stack.append((sys.stdout, sys.stderr))

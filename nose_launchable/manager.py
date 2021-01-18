@@ -36,6 +36,24 @@ def parse_test(test):
     return {"type": TREE_TYPE, "root": node}
 
 
+# Parse tests and return a list of test names
+def get_test_names(test):
+    test_names = []
+
+    def dfs(suite):
+        logger.debug("Parsing a test tree: suite: {}".format(suite))
+        if _is_leaf(suite):
+            test_names.append(_get_test_name(suite))
+            return suite
+
+        # Access to _tests is through a generator, so iteration is not repeatable by default
+        suite._tests = [dfs(t) for t in suite]
+        return suite
+
+    dfs(test)
+    return test_names
+
+
 # Reorder tests based on the given order
 def reorder(suite, order):
     if len(order) == 0:
@@ -81,6 +99,45 @@ def _reorder(suite, order):
     suite._tests = tests
 
     return tree_nodes
+
+
+# Subset tests based on the given order
+def subset(test, order):
+    def dfs(suite):
+        logger.debug("Subsetting a test tree: suite: {}".format(suite))
+        if _is_leaf(suite):
+            name = _get_test_name(suite)
+
+            score, is_target = 0, name in order
+            if is_target:
+                score = order[name]
+
+            logger.debug("A leaf node: score: {}, is_target: {}, suite: {}".format(score, is_target, suite))
+            return score, is_target, suite
+
+        cases = []
+        score = 0
+
+        for t in suite:
+            s, is_target, c = dfs(t)
+
+            if not is_target:
+                continue
+
+            cases.append((s, c))
+            score += s
+
+        # The smaller the score is, the faster the test needs to be tested
+        suite._tests = [c for _, c in sorted(cases, key=lambda x: x[0])]
+
+        # Propagate a score to its parent by calculating its average
+        # Avoid ZeroDivisionError with max(len(cases), 1)
+        s, is_target = score / max(len(cases), 1), len(cases) != 0
+        logger.debug("A non-leaf node: score: {}, is_target: {}, suite: {}".format(s, is_target, suite))
+        return s, is_target, suite
+
+    dfs(test)
+    return test
 
 
 # Check if test's context is a leaf

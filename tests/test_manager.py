@@ -4,7 +4,7 @@ from tests.resources.module1 import MockTestClass1
 from tests.resources.module2 import MockTestClass2
 
 from nose.suite import ContextSuite
-from nose_launchable.manager import parse_test, reorder
+from nose_launchable.manager import parse_test, reorder, get_test_names, subset
 
 
 class TestManager(unittest.TestCase):
@@ -39,11 +39,26 @@ class TestManager(unittest.TestCase):
 
         self.assertEqual(want, got)
 
-    def test_get_test_names_empty(self):
+    def test_parse_test_empty(self):
         suite = ContextSuite()
 
         want = {'type': 'tree', 'root': {'type': 'treeNode', 'id': str(id(suite)), 'children': []}}
         got = parse_test(suite)
+
+        self.assertEqual(want, got)
+
+    def test_get_test_names(self):
+        want = ['tests/resources/module0.py', 'tests/resources/module1.py', 'tests/resources/module2.py']
+
+        got = get_test_names(self.mock_suite0)
+
+        self.assertEqual(want, got)
+
+    def test_get_test_names_empty(self):
+        suite = ContextSuite()
+
+        want = []
+        got = get_test_names(suite)
 
         self.assertEqual(want, got)
 
@@ -90,3 +105,27 @@ class TestManager(unittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             reorder(test, {'type': 'graph', 'root': {}})
+
+    def test_subset_full(self):
+        want = ['tests/resources/module2.py', 'tests/resources/module1.py', 'tests/resources/module0.py']
+
+        subset(self.mock_suite0, {w: i for i, w in enumerate(want)})
+
+        got = get_test_names(self.mock_suite0)
+        self.assertEqual(want, got)
+
+    def test_subset_partial(self):
+        want = ['tests/resources/module2.py', 'tests/resources/module0.py']
+
+        subset(self.mock_suite0, {w: i for i, w in enumerate(want)})
+
+        got = get_test_names(self.mock_suite0)
+        self.assertEqual(want, got)
+
+    def test_subset_empty(self):
+        want = []
+
+        subset(self.mock_suite0, {w: i for i, w in enumerate(want)})
+
+        got = get_test_names(self.mock_suite0)
+        self.assertEqual(want, got)
