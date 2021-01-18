@@ -65,7 +65,7 @@ class TestLaunchableClient(unittest.TestCase):
         self.assertEqual(1, client.test_session_id)
 
 
-    def test_infer(self):
+    def test_reorder(self):
         mock_response = MagicMock(name="response")
         mock_requests = MagicMock(name="requests")
         mock_requests.post.return_value = mock_response
@@ -84,7 +84,7 @@ class TestLaunchableClient(unittest.TestCase):
             }
         }
 
-        client.infer(test)
+        client.reorder(test)
 
         expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/inference"
         expected_headers = {
