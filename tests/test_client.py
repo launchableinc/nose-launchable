@@ -153,9 +153,15 @@ class TestLaunchableClient(unittest.TestCase):
 
         client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
 
+        mock_component1 = MagicMock(name="test_path_component1")
+        mock_component1.to_body.return_value = "test1"
+
+        mock_component2 = MagicMock(name="test_path_component2")
+        mock_component2.to_body.return_value = "test2"
+
         events = [
-            CaseEvent("test1", 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
-            CaseEvent("test2", 0.2, CaseEvent.TEST_FAILED, "stdout2", "stderr2")
+            CaseEvent([mock_component1], 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
+            CaseEvent([mock_component2], 0.2, CaseEvent.TEST_FAILED, "stdout2", "stderr2")
         ]
 
         client.build_number = 1
@@ -175,20 +181,22 @@ class TestLaunchableClient(unittest.TestCase):
             "events": [
                 {
                     "type": "case",
-                    "testName": "test1",
+                    "testPath": ["test1"],
                     "duration": 0.1,
                     "status": CaseEvent.TEST_PASSED,
                     "stdout": "stdout1",
                     "stderr": "stderr1",
+                    "data": {'testPath': ['test1']},
                     "created_at": events[0].created_at
                 },
                 {
                     "type": "case",
-                    "testName": "test2",
+                    "testPath": ["test2"],
                     "duration": 0.2,
                     "status": CaseEvent.TEST_FAILED,
                     "stdout": "stdout2",
                     "stderr": "stderr2",
+                    "data": {'testPath': ['test2']},
                     "created_at": events[1].created_at,
                 }
             ]
