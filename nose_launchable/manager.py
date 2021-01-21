@@ -2,10 +2,12 @@ import os
 from types import ModuleType
 
 from nose.failure import Failure
+from nose.plugins.xunit import id_split
 from nose.suite import ContextSuite
 from nose.util import test_address
 
 from nose_launchable.log import logger
+from nose_launchable.test_path_component import TestPathComponent
 
 TREE_TYPE = "tree"
 TREE_NODE_TYPE = "treeNode"
@@ -169,3 +171,22 @@ def _get_test_name(suite):
 
     file_path, _, _ = test_address(suite.context)
     return os.path.relpath(file_path)
+
+
+# Return testPath like [{"type": "file", "name": "file_path"}, {"type": "testcase", "name": "function_name"}]
+def get_test_path(test):
+    test_path = []
+
+    file_path, _, _ = test_address(test.test)
+    test_path.append(TestPathComponent(TestPathComponent.FILE_TYPE, os.path.relpath(file_path)))
+
+    head, tail = id_split(test.test.id())
+
+    # If the test context is a class, we need a class name too to uniquely identify each test in the module
+    is_class_test = type(test.context) is type
+    if is_class_test:
+        test_path.append(TestPathComponent(TestPathComponent.CLASS_TYPE, head.rsplit(".", 1)[-1]))
+
+    test_path.append(TestPathComponent(TestPathComponent.CASE_TYPE, tail))
+
+    return test_path

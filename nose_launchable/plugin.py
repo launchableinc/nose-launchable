@@ -6,13 +6,12 @@ from time import time
 
 from nose.plugins import Plugin
 from nose.plugins.capture import Capture
-from nose.plugins.xunit import Tee, id_split
-from nose.util import test_address
+from nose.plugins.xunit import Tee
 
 from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory
 from nose_launchable.log import logger
-from nose_launchable.manager import parse_test, get_test_names, reorder, subset
+from nose_launchable.manager import parse_test, get_test_names, reorder, subset, get_test_path
 from nose_launchable.protecter import protect
 from nose_launchable.uploader import UploaderFactory
 
@@ -50,7 +49,7 @@ class Launchable(Plugin):
 
         if not (self.reorder_enabled ^ self.subset_enabled):
             self.enabled = False
-            logger.warning("Please specify either --launchable flag or --launchable-subset flag")
+            logger.warning("Please specify either --launchable-reorder flag or --launchable-subset flag")
             return
 
         self.enabled = True
@@ -169,24 +168,10 @@ class Launchable(Plugin):
         return ''
 
     def _addResult(self, test, status, queueing):
-        # Return file_path#function_name as a testName
-        # If a test is a class test, return file_path#class_name.function_name
-        def get_test_name(t):
-            file_path, _, _ = test_address(t.test)
-            head, tail = id_split(t.test.id())
+        test_path = get_test_path(test)
 
-            # If the test context is a class, we need a class name too to uniquely identify each test in the module
-            is_class_test = type(t.context) is type
-            if is_class_test:
-                name = ".".join([head.rsplit(".", 1)[-1], tail])
-            else:
-                name = tail
-
-            return "#".join([os.path.relpath(file_path), name])
-
-        test_name = get_test_name(test)
-        logger.debug("Adding a test result: test: {}, context: {}, test_name: {}".format(test, test.context, test_name))
-        result = CaseEvent(test_name, self._timeTaken(), status, self._getCapturedStdout(),
+        logger.debug("Adding a test result: test: {}, context: {}, test_path: {}".format(test, test.context, test_path))
+        result = CaseEvent(test_path, self._timeTaken(), status, self._getCapturedStdout(),
                            self._getCapturedStderr())
         queueing(result)
 
