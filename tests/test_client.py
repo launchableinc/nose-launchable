@@ -154,10 +154,10 @@ class TestLaunchableClient(unittest.TestCase):
         client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
 
         mock_component1 = MagicMock(name="test_path_component1")
-        mock_component1.to_body.return_value = "test1"
+        mock_component1.to_body.return_value = {"type": "file", "name": "test1.py"}
 
         mock_component2 = MagicMock(name="test_path_component2")
-        mock_component2.to_body.return_value = "test2"
+        mock_component2.to_body.return_value = {"type": "file", "name": "test2.py"}
 
         events = [
             CaseEvent([mock_component1], 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
@@ -181,22 +181,22 @@ class TestLaunchableClient(unittest.TestCase):
             "events": [
                 {
                     "type": "case",
-                    "testPath": ["test1"],
+                    "testPath": [{"type": "file", "name": "test1.py"}],
                     "duration": 0.1,
                     "status": CaseEvent.TEST_PASSED,
                     "stdout": "stdout1",
                     "stderr": "stderr1",
-                    "data": {'testPath': ['test1']},
+                    "data": {'testPath': [{"type": "file", "name": "test1.py"}]},
                     "created_at": events[0].created_at
                 },
                 {
                     "type": "case",
-                    "testPath": ["test2"],
+                    "testPath": [{"type": "file", "name": "test2.py"}],
                     "duration": 0.2,
                     "status": CaseEvent.TEST_FAILED,
                     "stdout": "stdout2",
                     "stderr": "stderr2",
-                    "data": {'testPath': ['test2']},
+                    "data": {'testPath': [{"type": "file", "name": "test2.py"}]},
                     "created_at": events[1].created_at,
                 }
             ]
