@@ -126,6 +126,7 @@ class Launchable(Plugin):
             self._endCapture()
 
         self._uploader.join()
+        self._client.finish()
 
     def _reorder(self, test):
         tree = parse_test(test)
