@@ -204,3 +204,25 @@ class TestLaunchableClient(unittest.TestCase):
 
         mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers, json=expected_body)
         mock_response.raise_for_status.assert_called_once_with()
+
+    def test_finish(self):
+        mock_response = MagicMock(name="response")
+        mock_requests = MagicMock(name="requests")
+        mock_requests.patch.return_value = mock_response
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, MagicMock(name="subprecess"))
+        client.build_number = "test_build_number"
+        client.test_session_id = "1"
+
+        client.finish()
+
+        expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/builds/test_build_number/test_sessions/1/close"
+        expected_headers = {
+            'Content-Type': 'application/json',
+            'X-Client-Name': LaunchableClient.CLIENT_NAME,
+            'X-Client-Version': __version__,
+            'Authorization': 'Bearer token'
+        }
+
+        mock_requests.patch.assert_called_once_with(expected_url, headers=expected_headers)
+        mock_response.raise_for_status.assert_called_once_with()

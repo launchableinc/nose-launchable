@@ -120,6 +120,18 @@ class LaunchableClient:
         res = self.http.post(url, headers=self._headers(), json=request_body)
         res.raise_for_status()
 
+    def finish(self):
+        url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions/{}/close".format(
+            self.base_url,
+            self.org_name,
+            self.workspace_name,
+            self.build_number,
+            self.test_session_id
+        )
+
+        res = self.http.patch(url, headers=self._headers())
+        res.raise_for_status()
+
     def _headers(self):
         return {
             'Content-Type': 'application/json',
