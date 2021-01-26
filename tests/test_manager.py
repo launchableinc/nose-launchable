@@ -1,7 +1,7 @@
 import unittest
-from tests.resources.module0 import MockTestClass0
-from tests.resources.module1 import MockTestClass1
-from tests.resources.module2 import MockTestClass2
+from .resources.module0 import MockTestClass0
+from .resources.module1 import MockTestClass1
+from .resources.module2 import MockTestClass2
 
 from nose.suite import ContextSuite
 from nose_launchable.manager import parse_test, reorder, get_test_names, subset
