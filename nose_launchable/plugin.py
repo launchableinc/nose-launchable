@@ -11,7 +11,7 @@ from nose.plugins.xunit import Tee
 from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory
 from nose_launchable.log import logger
-from nose_launchable.manager import parse_test, get_test_names, reorder, subset, get_test_path
+from nose_launchable.manager import get_test_names, subset, get_test_path
 from nose_launchable.protecter import protect
 from nose_launchable.uploader import UploaderFactory
 
@@ -33,8 +33,6 @@ class Launchable(Plugin):
 
     def options(self, parser, env):
         super(Launchable, self).options(parser, env=env)
-        parser.add_option("--launchable", action='store_true', dest="enabled", help="Enable Launchable reordering")
-        parser.add_option("--launchable-reorder", action='store_true', dest="reorder_enabled", help="Enable Launchable reordering")
         parser.add_option("--launchable-subset", action='store_true', dest="subset_enabled", help="Enable Launchable subsetting")
         parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number", help="CI/CD build number")
         parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target", help="Target percentage of subset")
@@ -42,14 +40,13 @@ class Launchable(Plugin):
     def configure(self, options, conf):
         super(Launchable, self).configure(options, conf)
 
-        self.reorder_enabled = options.enabled or options.reorder_enabled or False
         self.subset_enabled = options.subset_enabled or False
         self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
         self.subset_target = options.subset_target
 
-        if not (self.reorder_enabled ^ self.subset_enabled):
+        if not self.subset_enabled:
             self.enabled = False
-            logger.warning("Please specify either --launchable-reorder flag or --launchable-subset flag")
+            logger.warning("Please specify --launchable-subset flag")
             return
 
         self.enabled = True
@@ -75,8 +72,6 @@ class Launchable(Plugin):
     @protect
     def prepareTest(self, test):
         self._print("Getting optimized test execution order from Launchable...\n")
-        if self.reorder_enabled:
-            self._reorder(test)
 
         if self.subset_enabled:
             self._subset(test)
@@ -127,13 +122,6 @@ class Launchable(Plugin):
 
         self._uploader.join()
         self._client.finish()
-
-    def _reorder(self, test):
-        tree = parse_test(test)
-
-        order = self._client.reorder(tree)
-
-        reorder(test, order)
 
     def _subset(self, test):
         test_names = get_test_names(test)

@@ -64,45 +64,6 @@ class TestLaunchableClient(unittest.TestCase):
         self.assertEqual("test_build_number", client.build_number)
         self.assertEqual(1, client.test_session_id)
 
-
-    def test_reorder(self):
-        mock_response = MagicMock(name="response")
-        mock_requests = MagicMock(name="requests")
-        mock_requests.post.return_value = mock_response
-
-        mock_subprocess = MagicMock(name="subprecess")
-
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
-        client.build_number = "test"
-        client.test_session_id = 1
-
-        test = {
-            "type": "tree",
-            "root": {
-                "type": "testCaseNode",
-                "testName": "class0.test0"
-            }
-        }
-
-        client.reorder(test)
-
-        expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/inference"
-        expected_headers = {
-            'Content-Type': 'application/json',
-            'X-Client-Name': LaunchableClient.CLIENT_NAME,
-            'X-Client-Version': __version__,
-            'Authorization': 'Bearer token'
-        }
-
-        expected_body = {
-            'test': {'type': 'tree', 'root': {'type': 'testCaseNode', 'testName': 'class0.test0'}},
-            "session": {'id': 1, 'subject': 'test', 'flavors': {}},
-        }
-
-        mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers, json=expected_body)
-        mock_response.raise_for_status.assert_called_once_with()
-        mock_response.json.assert_called_once_with()
-
     def test_subset_success(self):
         mock_output = MagicMock(name="output")
         mock_subprocess = MagicMock(name="subprecess")
