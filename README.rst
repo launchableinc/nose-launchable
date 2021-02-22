@@ -14,13 +14,6 @@ Install
 Usage
 -----
 
-Reorder
-~~~~~~~
-
-::
-
-   $ nosetests --launchable-reorder --launchable-build-number <build number>
-
 Subset
 ~~~~~~
 
@@ -28,10 +21,9 @@ Subset
 
    $ nosetests --launchable-subset --launchable-build-number <build number> --launchable-subset-target <target percentage>
 
-In addition to specifying the ``--launchable-reorder`` /
-``--launchable-subset`` flag, you may need to set the following
-environment variables in your environment. These values should be
-provided from Launchable.
+In addition to specifying the ``--launchable-subset`` flag, you may need
+to set the following environment variables in your environment. These
+values should be provided from Launchable.
 
 +-----------------------------------+-----------------------------------+
 | Key                               | Description                       |

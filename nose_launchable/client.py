@@ -64,26 +64,6 @@ class LaunchableClient:
 
         self.test_session_id = response_body['id']
 
-    def reorder(self, test):
-        url = "{}/intake/organizations/{}/workspaces/{}/inference".format(
-            self.base_url,
-            self.org_name,
-            self.workspace_name
-        )
-
-        request_body = self._reorder_request_body(test)
-
-        logger.debug("Request body: {}".format(request_body))
-
-        res = self.http.post(url, headers=self._headers(), json=request_body)
-        logger.debug("Response status code: {}".format(res.status_code))
-        res.raise_for_status()
-
-        response_body = res.json()
-        logger.debug("Response body: {}".format(response_body))
-
-        return response_body
-
     def subset(self, test_names, target):
         url = "/test_sessions/{}".format(self.test_session_id)
 
@@ -138,12 +118,6 @@ class LaunchableClient:
             'X-Client-Name': self.CLIENT_NAME,
             'X-Client-Version': __version__,
             'Authorization': 'Bearer {}'.format(self.token)
-        }
-
-    def _reorder_request_body(self, test):
-        return {
-            "test": test,
-            "session": {"id": self.test_session_id, "subject": self.build_number, "flavors": {}},
         }
 
     def _upload_request_body(self, events):
