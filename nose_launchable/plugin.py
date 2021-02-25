@@ -37,6 +37,8 @@ class Launchable(Plugin):
         parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number", help="CI/CD build number")
         parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target", help="Target percentage of subset")
 
+        parser.add_option("--launchable-record-only", action='store_true', dest="record_only_enabled", help="Enable Launchable recording")
+
     def configure(self, options, conf):
         super(Launchable, self).configure(options, conf)
 
@@ -44,16 +46,21 @@ class Launchable(Plugin):
         self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
         self.subset_target = options.subset_target
 
-        if not self.subset_enabled:
+        self.record_only_enabled = options.record_only_enabled or False
+
+        if not (self.subset_enabled or self.record_only_enabled):
+            return
+
+        if self.subset_enabled and self.record_only_enabled:
             self.enabled = False
-            logger.warning("Please specify --launchable-subset flag")
+            logger.warning("Please specify either --launchable-subset or --launchable-record-only flag")
             return
 
         self.enabled = True
 
         if self.enabled and self.build_number is None:
             self.enabled = False
-            logger.warning("Please specify --launchable-build-number flag in order to enable nose-launchable plugin")
+            logger.warning("Please specify --launchable-build-number flag to enable Launchable")
 
         if self.subset_enabled and self.subset_target is None:
             self.enabled = False
@@ -71,15 +78,15 @@ class Launchable(Plugin):
 
     @protect
     def prepareTest(self, test):
-        self._print("Getting optimized test execution order from Launchable...\n")
-
         if self.subset_enabled:
+            self._print("Getting optimized test execution order from Launchable...\n")
+
             self._subset(test)
 
-        self._print("Test execution optimized by Launchable ")
-        # A rocket emoji
-        self._print("\U0001f680\n")
-        return test
+            self._print("Test execution optimized by Launchable ")
+            # A rocket emoji
+            self._print("\U0001f680\n")
+            return test
 
     @protect
     def startContext(self, context):
@@ -122,6 +129,8 @@ class Launchable(Plugin):
 
         self._uploader.join()
         self._client.finish()
+
+        self._print("Test results have been successfully uploaded to Launchable\n")
 
     def _subset(self, test):
         test_names = get_test_names(test)
