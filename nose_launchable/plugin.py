@@ -27,6 +27,9 @@ class Launchable(Plugin):
     def __init__(self):
         super().__init__()
 
+        self._client = LaunchableClientFactory.prepare()
+        self._uploader = UploaderFactory.prepare(self._client)
+
         self._capture_stack = []
         self._currentStdout = None
         self._currentStderr = None
@@ -66,15 +69,10 @@ class Launchable(Plugin):
             self.enabled = False
             logger.warning("Please specify --launchable-subset-target flag to run subset")
 
-
     @protect
     def begin(self):
-        self._client = LaunchableClientFactory.prepare()
-        self._client.start(self.build_number)
-
-        self._uploader = UploaderFactory.prepare(self._client)
-
         self._uploader.start()
+        self._client.start(self.build_number)
 
     @protect
     def prepareTest(self, test):
