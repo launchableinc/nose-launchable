@@ -1,4 +1,3 @@
-
 import os
 import sys
 from io import StringIO
@@ -33,11 +32,18 @@ class Launchable(Plugin):
 
     def options(self, parser, env):
         super(Launchable, self).options(parser, env=env)
-        parser.add_option("--launchable-subset", action='store_true', dest="subset_enabled", help="Enable Launchable subsetting")
-        parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number", help="CI/CD build number")
-        parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target", help="Target percentage of subset")
+        parser.add_option("--launchable-subset", action='store_true', dest="subset_enabled",
+                          help="Enable Launchable subsetting")
+        parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number",
+                          help="CI/CD build number")
+        parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target",
+                          help="Target percentage of subset")
 
-        parser.add_option("--launchable-record-only", action='store_true', dest="record_only_enabled", help="Enable Launchable recording")
+        parser.add_option("--launchable-subset-options", action='store', dest="subset_options",
+                          help="Launchable CLI subset command options")
+
+        parser.add_option("--launchable-record-only", action='store_true', dest="record_only_enabled",
+                          help="Enable Launchable recording")
 
     def configure(self, options, conf):
         super(Launchable, self).configure(options, conf)
@@ -45,6 +51,8 @@ class Launchable(Plugin):
         self.subset_enabled = options.subset_enabled or False
         self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
         self.subset_target = options.subset_target
+
+        self.subset_options = options.subset_options
 
         self.record_only_enabled = options.record_only_enabled or False
 
@@ -60,12 +68,11 @@ class Launchable(Plugin):
 
         if self.enabled and self.build_number is None:
             self.enabled = False
-            logger.warning("Please specify --launchable-build-number flag to enable Launchable")
+            logger.warning("Please specify --launchable-build-number flag")
 
-        if self.subset_enabled and self.subset_target is None:
+        if self.subset_enabled and not ((self.subset_target is None) ^ (self.subset_options is None)):
             self.enabled = False
-            logger.warning("Please specify --launchable-subset-target flag to run subset")
-
+            logger.warning("Please specify either --launchable-subset-target or --launchable-subset-options flag")
 
     @protect
     def begin(self):
@@ -135,7 +142,7 @@ class Launchable(Plugin):
     def _subset(self, test):
         test_names = get_test_names(test)
 
-        order = self._client.subset(test_names, self.subset_target)
+        order = self._client.subset(test_names, self.subset_options, self.subset_target)
 
         # Create a dictionary maps test_name to its index
         subset(test, {o: i for i, o in enumerate(order)})
