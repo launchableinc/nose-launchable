@@ -12,8 +12,12 @@ $ pip install nose-launchable
 ### Subset
 
 ```
-$ nosetests --launchable-subset --launchable-build-number <build number> --launchable-subset-target <target percentage>
+$ nosetests --launchable-subset --launchable-build-number <build number> --launchable-subset-options <Launchable CLI subset options>
 ```
+
+You need to specify `--launchable-subset-options` flag and give it Launchable CLI subset command options. For example, if you want to create a fixed time-based subset it looks like `--launchable-subset-options '--time 600'`. 
+
+For more information on the CLI options, please visit [the CLI documentation page](https://docs.launchableinc.com/resources/cli-reference#subset).
 
 ### Record only
 
