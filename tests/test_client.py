@@ -64,7 +64,7 @@ class TestLaunchableClient(unittest.TestCase):
         self.assertEqual("test_build_number", client.build_number)
         self.assertEqual(1, client.test_session_id)
 
-    def test_subset_success(self):
+    def test_subset_success_with_target(self):
         mock_output = MagicMock(name="output")
         mock_subprocess = MagicMock(name="subprecess")
 
@@ -79,7 +79,30 @@ class TestLaunchableClient(unittest.TestCase):
         client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
         client.test_session_id = 1
 
-        got = client.subset(["tests/test1.py", "tests/test2.py"], "10")
+        got = client.subset(["tests/test1.py", "tests/test2.py"], None, "10")
+
+        expected_command = ['launchable', 'subset', '--session', '/test_sessions/1', '--target', '10%', 'file']
+        expected_input = 'tests/test1.py\ntests/test2.py'
+
+        mock_subprocess.run.assert_called_once_with(expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
+        self.assertEqual(['tests/test2.py', 'tests/test1.py'], got)
+
+    def test_subset_success_with_options(self):
+        mock_output = MagicMock(name="output")
+        mock_subprocess = MagicMock(name="subprecess")
+
+        mock_subprocess.run.return_value = mock_output
+        mock_subprocess.PIPE = "PIPE"
+        # Success
+        mock_output.returncode = 0
+        mock_output.stdout = "tests/test2.py\ntests/test1.py\n"
+
+        mock_requests = MagicMock(name="requests")
+
+        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.test_session_id = 1
+
+        got = client.subset(["tests/test1.py", "tests/test2.py"], '--target 10%', None)
 
         expected_command = ['launchable', 'subset', '--session', '/test_sessions/1', '--target', '10%', 'file']
         expected_input = 'tests/test1.py\ntests/test2.py'
@@ -103,7 +126,7 @@ class TestLaunchableClient(unittest.TestCase):
         client.test_session_id = 1
 
         with self.assertRaises(RuntimeError):
-            client.subset(["tests/test1.py", "tests/test2.py"], "10")
+            client.subset(["tests/test1.py", "tests/test2.py"], None, "10")
 
     def test_upload_events(self):
         mock_response = MagicMock(name="response")

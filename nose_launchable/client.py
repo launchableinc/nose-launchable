@@ -64,11 +64,20 @@ class LaunchableClient:
 
         self.test_session_id = response_body['id']
 
-    def subset(self, test_names, target):
+    def subset(self, test_names, options, target):
         url = "/test_sessions/{}".format(self.test_session_id)
 
+        cmd = ['launchable', 'subset', '--session', url]
+        if options is not None:
+            cmd.extend([option.strip() for option in options.split(' ')])
+            cmd.append('file')
+        else:
+            cmd.extend(['--target', target + '%', 'file'])
+
+        logger.debug("Subset command: {}".format(cmd))
+
         proc = self.process.run(
-            ['launchable', 'subset', '--session', url, '--target', target + '%', 'file'],
+            cmd,
             input="\n".join(test_names),
             encoding='utf-8',
             stdout=self.process.PIPE,
