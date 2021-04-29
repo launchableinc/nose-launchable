@@ -59,7 +59,7 @@ class Launchable(Plugin):
             # we didn't get activated
             return
 
-        if os.environ[LaunchableClientFactory.TOKEN_KEY] is None:
+        if os.environ.get(LaunchableClientFactory.TOKEN_KEY) is None:
             logger.warning("%s not set. Deactivating"%LaunchableClientFactory.TOKEN_KEY)
             return
 

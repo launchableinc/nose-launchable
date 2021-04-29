@@ -20,7 +20,7 @@ class LaunchableClientFactory:
 
     @classmethod
     def _parse_options(cls):
-        token = os.environ[cls.TOKEN_KEY]
+        token = os.environ.get(cls.TOKEN_KEY)
         if token is None:
             raise Exception("%s not set"%cls.TOKEN_KEY)
 
