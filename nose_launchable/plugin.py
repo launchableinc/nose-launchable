@@ -11,7 +11,7 @@ from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory
 from nose_launchable.log import logger
 from nose_launchable.manager import get_test_names, subset, get_test_path
-from nose_launchable.protecter import protect
+from nose_launchable.protecter import protect, handleError
 from nose_launchable.uploader import UploaderFactory
 
 BUILD_NUMBER_KEY = "LAUNCHABLE_BUILD_NUMBER"
@@ -25,9 +25,6 @@ class Launchable(Plugin):
 
     def __init__(self):
         super().__init__()
-
-        self._client = LaunchableClientFactory.prepare()
-        self._uploader = UploaderFactory.prepare(self._client)
 
         self._capture_stack = []
         self._currentStdout = None
@@ -52,30 +49,42 @@ class Launchable(Plugin):
         super(Launchable, self).configure(options, conf)
 
         self.subset_enabled = options.subset_enabled or False
-        self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
-        self.subset_target = options.subset_target
-
-        self.subset_options = options.subset_options
-
         self.record_only_enabled = options.record_only_enabled or False
 
+        self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
+        self.subset_target = options.subset_target
+        self.subset_options = options.subset_options
+
         if not (self.subset_enabled or self.record_only_enabled):
+            # we didn't get activated
+            return
+
+        if os.environ.get(LaunchableClientFactory.TOKEN_KEY) is None:
+            logger.warning("%s not set. Deactivating"%LaunchableClientFactory.TOKEN_KEY)
             return
 
         if self.subset_enabled and self.record_only_enabled:
-            self.enabled = False
             logger.warning("Please specify either --launchable-subset or --launchable-record-only flag")
             return
 
+        if self.build_number is None:
+            logger.warning("Please specify --launchable-build-number flag")
+            return
+
+        if not ((self.subset_target is None) ^ (self.subset_options is None)):
+            logger.warning("Please specify either --launchable-subset-target or --launchable-subset-options flag")
+            return
+
+        try:
+            self._client = LaunchableClientFactory.prepare()
+            self._uploader = UploaderFactory.prepare(self._client)
+        except Exception as e:
+            handleError(e)
+            return
+
+        # only if every validation checks out we are good to go
         self.enabled = True
 
-        if self.enabled and self.build_number is None:
-            self.enabled = False
-            logger.warning("Please specify --launchable-build-number flag")
-
-        if self.subset_enabled and not ((self.subset_target is None) ^ (self.subset_options is None)):
-            self.enabled = False
-            logger.warning("Please specify either --launchable-subset-target or --launchable-subset-options flag")
 
     @protect
     def begin(self):
