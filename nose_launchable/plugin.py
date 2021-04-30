@@ -88,8 +88,8 @@ class Launchable(Plugin):
 
     @protect
     def begin(self):
-        self._uploader.start()
         self._client.start(self.build_number)
+        self._uploader.start()
 
     @protect
     def prepareTest(self, test):
