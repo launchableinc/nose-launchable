@@ -71,7 +71,7 @@ class Launchable(Plugin):
             logger.warning("Please specify --launchable-build-number flag")
             return
 
-        if not ((self.subset_target is None) ^ (self.subset_options is None)):
+        if self.subset_enabled and not ((self.subset_target is None) ^ (self.subset_options is None)):
             logger.warning("Please specify either --launchable-subset-target or --launchable-subset-options flag")
             return
 
