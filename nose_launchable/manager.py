@@ -29,39 +29,31 @@ def get_test_names(test):
     return test_names
 
 # Subset tests based on the given order
-def subset(test, order):
+def subset(test, target_tests):
     def dfs(suite):
         logger.debug("Subsetting a test tree: suite: {}".format(suite))
         if _is_leaf(suite):
             name = _get_test_name(suite)
+            is_target = name in target_tests
 
-            score, is_target = 0, name in order
-            if is_target:
-                score = order[name]
-
-            logger.debug("A leaf node: score: {}, is_target: {}, suite: {}".format(score, is_target, suite))
-            return score, is_target, suite
+            logger.debug("A leaf node: is_target: {}, suite: {}".format(is_target, suite))
+            return is_target, suite
 
         cases = []
-        score = 0
 
         for t in suite:
-            s, is_target, c = dfs(t)
+            is_target, c = dfs(t)
 
             if not is_target:
                 continue
 
-            cases.append((s, c))
-            score += s
+            cases.append(c)
 
-        # The smaller the score is, the faster the test needs to be tested
-        suite._tests = [c for _, c in sorted(cases, key=lambda x: x[0])]
+        suite._tests = cases
 
-        # Propagate a score to its parent by calculating its average
-        # Avoid ZeroDivisionError with max(len(cases), 1)
-        s, is_target = score / max(len(cases), 1), len(cases) != 0
-        logger.debug("A non-leaf node: score: {}, is_target: {}, suite: {}".format(s, is_target, suite))
-        return s, is_target, suite
+        is_target = len(cases) != 0
+        logger.debug("A non-leaf node: is_target: {}, suite: {}".format(is_target, suite))
+        return is_target, suite
 
     dfs(test)
     return test

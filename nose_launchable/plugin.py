@@ -150,10 +150,9 @@ class Launchable(Plugin):
     def _subset(self, test):
         test_names = get_test_names(test)
 
-        order = self._client.subset(test_names, self.subset_options, self.subset_target)
+        targets = self._client.subset(test_names, self.subset_options, self.subset_target)
 
-        # Create a dictionary maps test_name to its index
-        subset(test, {o: i for i, o in enumerate(order)})
+        subset(test, set(targets))
 
     def _startCapture(self):
         self._capture_stack.append((sys.stdout, sys.stderr))

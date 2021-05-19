@@ -28,17 +28,17 @@ class TestManager(unittest.TestCase):
         self.assertEqual(want, got)
 
     def test_subset_full(self):
-        want = ['tests/resources/module2.py', 'tests/resources/module1.py', 'tests/resources/module0.py']
+        want = ['tests/resources/module0.py', 'tests/resources/module1.py', 'tests/resources/module2.py']
 
-        subset(self.mock_suite0, {w: i for i, w in enumerate(want)})
+        subset(self.mock_suite0, set(want))
 
         got = get_test_names(self.mock_suite0)
         self.assertEqual(want, got)
 
     def test_subset_partial(self):
-        want = ['tests/resources/module2.py', 'tests/resources/module0.py']
+        want = ['tests/resources/module0.py', 'tests/resources/module2.py']
 
-        subset(self.mock_suite0, {w: i for i, w in enumerate(want)})
+        subset(self.mock_suite0, set(want))
 
         got = get_test_names(self.mock_suite0)
         self.assertEqual(want, got)
@@ -46,7 +46,7 @@ class TestManager(unittest.TestCase):
     def test_subset_empty(self):
         want = []
 
-        subset(self.mock_suite0, {w: i for i, w in enumerate(want)})
+        subset(self.mock_suite0, set(want))
 
         got = get_test_names(self.mock_suite0)
         self.assertEqual(want, got)
