@@ -3,8 +3,6 @@ import subprocess
 import unittest
 from unittest.mock import MagicMock
 
-import requests
-
 from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory, LaunchableClient
 from nose_launchable.version import __version__
@@ -21,7 +19,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual('org_name', client.org_name)
         self.assertEqual('wp_name', client.workspace_name)
         self.assertEqual('v1:org_name/wp_name:token', client.token)
-        self.assertEqual(requests, client.http)
+        self.assertIsNotNone(client.http)
         self.assertEqual(subprocess, client.process)
 
     def test_prepare_with_base_url(self):
@@ -33,7 +31,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual('org_name', client.org_name)
         self.assertEqual('wp_name', client.workspace_name)
         self.assertEqual('v1:org_name/wp_name:token', client.token)
-        self.assertEqual(requests, client.http)
+        self.assertIsNotNone(client.http)
         self.assertEqual(subprocess, client.process)
 
 
