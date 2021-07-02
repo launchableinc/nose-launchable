@@ -1,10 +1,13 @@
 import os
-
-import requests
 import subprocess
+
+from requests import Session
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 from nose_launchable.log import logger
 from nose_launchable.version import __version__
+
 
 class LaunchableClientFactory:
     BASE_URL_KEY = "LAUNCHABLE_BASE_URL"
@@ -15,8 +18,19 @@ class LaunchableClientFactory:
     @classmethod
     def prepare(cls):
         url, org, wp, token = cls._parse_options()
+        strategy = Retry(
+            total=3,
+            method_whitelist=["GET", "PUT", "PATCH", "DELETE"],
+            status_forcelist=[429, 500, 502, 503, 504],
+            backoff_factor=2
+        )
 
-        return LaunchableClient(url, org, wp, token, requests, subprocess)
+        adapter = HTTPAdapter(max_retries=strategy)
+        http = Session()
+        http.mount("http://", adapter)
+        http.mount("https://", adapter)
+
+        return LaunchableClient(url, org, wp, token, http, subprocess)
 
     @classmethod
     def _parse_options(cls):
