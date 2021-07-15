@@ -1,6 +1,8 @@
 import os
+from types import FunctionType
 from types import ModuleType
 
+from nose.case import Test
 from nose.failure import Failure
 from nose.plugins.xunit import id_split
 from nose.suite import ContextSuite
@@ -10,7 +12,6 @@ from nose_launchable.log import logger
 from nose_launchable.test_path_component import TestPathComponent
 
 
-
 # Parse tests and return a list of test names
 def get_test_names(test):
     test_names = []
@@ -18,7 +19,9 @@ def get_test_names(test):
     def dfs(suite):
         logger.debug("Parsing a test tree: suite: {}".format(suite))
         if _is_leaf(suite):
-            test_names.append(_get_test_name(suite))
+            if not is_empty(suite):
+                test_names.append(_get_test_name(suite))
+
             return suite
 
         # Access to _tests is through a generator, so iteration is not repeatable by default
@@ -26,7 +29,39 @@ def get_test_names(test):
         return suite
 
     dfs(test)
+    logger.debug("Test names: {}".format(test_names))
     return test_names
+
+
+# Check if the test contains any test cases
+# If a use uses the Attrib plugin, the file could be empty
+def is_empty(test):
+    empty = True
+
+    def dfs(suite):
+        nonlocal empty
+
+        # Exit earlier since we already know the test contains at least one test case
+        if not empty:
+            return suite
+
+        # 1. If type(suite) is Test the search reaches at the bottom
+        # 2. If type(suite.context) is function, the test is a generator and stop parsing it there to avoid executing it
+        if type(suite) is Test or type(getattr(suite, "context", None)) is FunctionType:
+            empty = False
+
+            return suite
+
+        suite._tests = [dfs(t) for t in suite]
+        return suite
+
+    dfs(test)
+
+    if empty:
+        logger.debug("Suite {} is empty".format(test))
+
+    return empty
+
 
 # Subset tests based on the given order
 def subset(test, target_tests):
