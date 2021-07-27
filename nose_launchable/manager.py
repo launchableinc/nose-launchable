@@ -1,5 +1,5 @@
 import os
-from types import FunctionType
+from inspect import isfunction, ismethod
 from types import ModuleType
 
 from nose.case import Test
@@ -45,11 +45,12 @@ def is_empty(test):
         if not empty:
             return suite
 
-        # 1. If type(suite) is Test the search reaches at the bottom
-        # 2. If type(suite.context) is function, the test is a generator and stop parsing it there to avoid executing it
-        if type(suite) is Test or type(getattr(suite, "context", None)) is FunctionType:
+        context = getattr(suite, "context", None)
+        # 1. If type(suite) is Test, the search reaches at the bottom
+        # 2. If context is function or method, the search should stop there to avoid executing it.
+        #    It is most likely a test generator.
+        if type(suite) is Test or isfunction(context) or ismethod(context):
             empty = False
-
             return suite
 
         suite._tests = [dfs(t) for t in suite]
