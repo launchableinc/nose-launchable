@@ -88,11 +88,13 @@ class Launchable(Plugin):
 
     @protect
     def begin(self):
+        print("begin is called")
         self._client.start(self.build_number)
         self._uploader.start()
 
     @protect
     def prepareTest(self, test):
+        print("prepareTest started")
         if self.subset_enabled:
             self._print("Getting optimized test execution order from Launchable...\n")
 
@@ -101,44 +103,53 @@ class Launchable(Plugin):
             self._print("Test execution optimized by Launchable ")
             # A rocket emoji
             self._print("\U0001f680\n")
+            print("prepareTest finished")
             return test
 
     @protect
     def startContext(self, context):
+        print("startContext is called")
         self._startCapture()
 
     @protect
     def stopContext(self, context):
+        print("stopContext is called")
         self._endCapture()
 
     @protect
     def beforeTest(self, test):
+        print("beforeTest is called")
         """Initializes a timer before starting a test."""
         self._timer = time()
         self._startCapture()
 
     @protect
     def afterTest(self, test):
+        print("afterTest is called")
         self._endCapture()
         self._currentStdout = None
         self._currentStderr = None
 
     @protect
     def addError(self, test, err, capt=None):
+        print("addError is called")
         type, value, traceback = err
         if type not in (ImportError, ValueError):
             self._addResult(test, CaseEvent.TEST_FAILED, self._uploader.enqueue_failure)
 
     @protect
     def addFailure(self, test, err, capt=None, tb_info=None):
+        print("addFailure is called")
         self._addResult(test, CaseEvent.TEST_FAILED, self._uploader.enqueue_failure)
 
     @protect
     def addSuccess(self, test, capt=None):
+        print("addSuccess is called")
         self._addResult(test, CaseEvent.TEST_PASSED, self._uploader.enqueue_success)
 
     @protect
     def finalize(self, test):
+        print("finalize is called")
         while self._capture_stack:
             self._endCapture()
 
@@ -146,6 +157,96 @@ class Launchable(Plugin):
         self._client.finish()
 
         self._print("Test results have been successfully uploaded to Launchable\n")
+
+    def afterContext(self):
+        print("afterContext is called")
+
+    def afterDirectory(self, path):
+        print("afterDirectory is called")
+
+    def afterImport(self, filename, module):
+        print("afterImport is called")
+
+    def beforeContext(self):
+        print("beforeContext is called")
+
+    def beforeDirectory(self, path):
+        print("beforeDirectory is called")
+
+    def beforeImport(self, filename, module):
+        print("beforeImport is called")
+
+    def describeTest(self, test):
+        print("describeTest is called")
+
+    def formatError(self, test, err):
+        print("formatError is called")
+
+    def formatFailure(self, test, err):
+        print("formatFailure is called")
+
+    def loadTestsFromDir(self, path):
+        print("loadTestsFromDir is called")
+
+    def loadTestsFromModule(self, module, path=None):
+        print("loadTestsFromModule is called")
+
+    def loadTestsFromNames(self, names, module=None):
+        print("loadTestsFromNames is called")
+
+    def loadTestsFromFile(self, filename):
+        print("loadTestsFromFile is called")
+
+    def loadTestsFromTestCase(self, cls):
+        print("loadTestsFromTestCase is called")
+
+    def loadTestsFromTestClass(self, cls):
+        print("loadTestsFromTestClass is called")
+
+    def makeTest(self, obj, parent):
+        print("makeTest is called")
+
+    def prepareTestCase(self, test):
+        print("prepareTestCase is called")
+
+    def prepareTestLoader(self, loader):
+        print("prepareTestLoader is called")
+
+    def prepareTestResult(self, result):
+        print("prepareTestResult is called")
+
+    def prepareTestRunner(self, runner):
+        print("prepareTestRunner is called")
+
+    def report(self, stream):
+        print("report is called")
+
+    def startTest(self, test):
+        print("startTest is called")
+
+    def stopTest(self, test):
+        print("stopTest is called")
+
+    def testName(self, test):
+        print("testName is called")
+
+    def wantClass(self, cls):
+        print("wantClass is called")
+
+    def wantDirectory(self, dirname):
+        print("wantDirectory is called")
+
+    def wantFile(self, file):
+        print("wantFile is called")
+
+    def wantFunction(self, function):
+        print("wantFunction is called")
+
+    def wantMethod(self, method):
+        print("wantMethod is called")
+
+    def wantModule(self, module):
+        print("wantModule is called")
 
     def _subset(self, test):
         test_names = get_test_names(test)
