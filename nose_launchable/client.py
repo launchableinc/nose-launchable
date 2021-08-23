@@ -61,7 +61,11 @@ class LaunchableClient:
         self.build_number = None
         self.test_session_context = None
 
-    def start(self, build_number):
+    def start(self, build_number, test_session):
+        if test_session:
+            self.test_session_id = test_session
+            return
+
         self.build_number = build_number
         url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions".format(
             self.base_url,
