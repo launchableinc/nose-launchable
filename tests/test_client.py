@@ -44,8 +44,9 @@ class TestLaunchableClient(unittest.TestCase):
 
         mock_subprocess = MagicMock(name="subprecess")
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
-        client.start("test_build_number")
+        client = LaunchableClient(
+            "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.start("test_build_number", None)
 
         expected_url = "base_url/intake/organizations/org_name/workspaces/wp_name/builds/test_build_number/test_sessions"
         expected_headers = {
