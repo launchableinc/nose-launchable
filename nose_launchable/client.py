@@ -86,10 +86,23 @@ class LaunchableClient:
             build_number=build_number, test_session_id=response_body["id"])
 
     def subset(self, test_names, options, target):
+
+        split_subset = False
         cmd = ['launchable', 'subset', '--session',
                self.test_session_context.get_build_path()]
+
         if options is not None:
-            cmd.extend([option.strip() for option in options.split(' ')])
+            opts = self._parse_options(options)
+            for k, v in opts.items():
+                if k == "--bin":
+                    cmd.append("--split")
+                    split_subset = True
+                    continue
+
+                cmd.append(k)
+                if v != "":
+                    cmd.append(v)
+
             cmd.append('file')
         else:
             cmd.extend(['--target', target + '%', 'file'])
@@ -108,10 +121,40 @@ class LaunchableClient:
             raise RuntimeError(
                 "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
 
+        if split_subset:
+            subset_id = proc.stdout.rstrip("\n")
+            return self.split_subset(subset_id, options)
+
         # launchable subset command returns a list of test names splitted by \n
         order = proc.stdout.rstrip("\n").split("\n")
 
         logger.debug("Subset test order: {}".format(order))
+
+        return order
+
+    def split_subset(self, subset_id, options):
+        cmd = ['launchable', 'split-subset', '--subset-id', subset_id]
+
+        opts = self._parse_options(options)
+        cmd.append('--bin', opts['--bin'])
+
+        logger.debug("Split-Subset command: {}".format(cmd))
+
+        proc = self.process.run(
+            cmd,
+            encoding='utf-8',
+            stdout=self.process.PIPE,
+            stderr=self.process.PIPE
+        )
+
+        if proc.returncode != 0:
+            raise RuntimeError(
+                "launchable split subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+
+        # launchable split subset command returns a list of test names splitted by \n
+        order = proc.stdout.rstrip("\n").split("\n")
+
+        logger.debug("Split-Subset test order: {}".format(order))
 
         return order
 
