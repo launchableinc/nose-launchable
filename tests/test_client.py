@@ -15,7 +15,8 @@ class TestLaunchableClientFactory(unittest.TestCase):
     def test_prepare(self):
         client = LaunchableClientFactory.prepare()
 
-        self.assertEqual('https://api.mercury.launchableinc.com', client.base_url)
+        self.assertEqual(
+            'https://api.mercury.launchableinc.com', client.base_url)
         self.assertEqual('org_name', client.org_name)
         self.assertEqual('wp_name', client.workspace_name)
         self.assertEqual('v1:org_name/wp_name:token', client.token)
@@ -164,17 +165,22 @@ class TestLaunchableClient(unittest.TestCase):
 
         mock_subprocess = MagicMock(name="subprecess")
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client = LaunchableClient(
+            "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
 
         mock_component1 = MagicMock(name="test_path_component1")
-        mock_component1.to_body.return_value = {"type": "file", "name": "test1.py"}
+        mock_component1.to_body.return_value = {
+            "type": "file", "name": "test1.py"}
 
         mock_component2 = MagicMock(name="test_path_component2")
-        mock_component2.to_body.return_value = {"type": "file", "name": "test2.py"}
+        mock_component2.to_body.return_value = {
+            "type": "file", "name": "test2.py"}
 
         events = [
-            CaseEvent([mock_component1], 0.1, CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
-            CaseEvent([mock_component2], 0.2, CaseEvent.TEST_FAILED, "stdout2", "stderr2")
+            CaseEvent([mock_component1], 0.1,
+                      CaseEvent.TEST_PASSED, "stdout1", "stderr1"),
+            CaseEvent([mock_component2], 0.2,
+                      CaseEvent.TEST_FAILED, "stdout2", "stderr2")
         ]
 
         client.build_number = 1
@@ -216,7 +222,8 @@ class TestLaunchableClient(unittest.TestCase):
             ]
         }
 
-        mock_requests.post.assert_called_once_with(expected_url, headers=expected_headers, json=expected_body)
+        mock_requests.post.assert_called_once_with(
+            expected_url, headers=expected_headers, json=expected_body)
         mock_response.raise_for_status.assert_called_once_with()
 
     def test_finish(self):
@@ -239,8 +246,27 @@ class TestLaunchableClient(unittest.TestCase):
             'Authorization': 'Bearer token'
         }
 
-        mock_requests.patch.assert_called_once_with(expected_url, headers=expected_headers)
+        mock_requests.patch.assert_called_once_with(
+            expected_url, headers=expected_headers)
         mock_response.raise_for_status.assert_called_once_with()
+
+    def test_parse_option(self):
+        option1 = "--target 50% --flavor key=value"
+        exp1 = {
+            "--target": "50%",
+            "--flavor": "key=value",
+        }
+
+        option2 = "--split --bin 1/2 --time 1h20m"
+        exp2 = {
+            "--split": "",
+            "--bin": "1/2",
+            "--time": "1h20m",
+        }
+
+        client = LaunchableClient(None, None, None, None, None, None)
+        self.assertEqual(client._parse_options(option1), exp1)
+        self.assertEqual(client._parse_options(option2), exp2)
 
 
 class TestTSessionContext(unittest.TestCase):

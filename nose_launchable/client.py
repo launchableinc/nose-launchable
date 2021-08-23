@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shlex
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -36,7 +37,7 @@ class LaunchableClientFactory:
     def _parse_options(cls):
         token = os.environ.get(cls.TOKEN_KEY)
         if token is None:
-            raise Exception("%s not set"%cls.TOKEN_KEY)
+            raise Exception("%s not set" % cls.TOKEN_KEY)
 
         _, user, _ = token.split(":", 2)
         org, workplace = user.split("/", 1)
@@ -104,7 +105,8 @@ class LaunchableClient:
         )
 
         if proc.returncode != 0:
-            raise RuntimeError("launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+            raise RuntimeError(
+                "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
 
         # launchable subset command returns a list of test names splitted by \n
         order = proc.stdout.rstrip("\n").split("\n")
@@ -148,6 +150,20 @@ class LaunchableClient:
 
     def _upload_request_body(self, events):
         return {"events": [event.to_body() for event in events]}
+
+    def _parse_options(self, option_str):
+        args = shlex.split(option_str)
+        option = {}
+        for k, v in zip(args, args[1:]+["--"]):
+            if not k.startswith("-"):
+                continue
+
+            if v.startswith("-"):  # bool flag
+                option[k] = ""
+            else:
+                option[k] = v
+
+        return option
 
 
 class TestSessionContext:
