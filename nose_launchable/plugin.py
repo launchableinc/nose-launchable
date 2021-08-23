@@ -36,6 +36,8 @@ class Launchable(Plugin):
                           help="Enable Launchable subsetting")
         parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number",
                           help="CI/CD build number")
+        parser.add_option("--launchable-test-session", action='store', type='string', dest="test_session",
+                          help="Launchable test session id")
         parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target",
                           help="Target percentage of subset")
 
@@ -52,6 +54,7 @@ class Launchable(Plugin):
         self.record_only_enabled = options.record_only_enabled or False
 
         self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
+        self.test_session = options.test_session
         self.subset_target = options.subset_target
         self.subset_options = options.subset_options
 
@@ -67,8 +70,9 @@ class Launchable(Plugin):
             logger.warning("Please specify either --launchable-subset or --launchable-record-only flag")
             return
 
-        if self.build_number is None:
-            logger.warning("Please specify --launchable-build-number flag")
+        if (self.build_number and self.test_session) or (not (self.build_number or self.test_session)):
+            logger.warning(
+                "Please specify either --launchable-build-number or --launchable-test-session flag")
             return
 
         if self.subset_enabled and not ((self.subset_target is None) ^ (self.subset_options is None)):
