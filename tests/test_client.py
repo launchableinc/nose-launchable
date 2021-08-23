@@ -66,6 +66,22 @@ class TestLaunchableClient(unittest.TestCase):
         self.assertEqual(
             "builds/test_build_number/test_sessions/1", client.test_session_context.get_build_path())
 
+    def test_start_with_test_session(self):
+        mock_response = MagicMock(name="response")
+        mock_requests = MagicMock(name="requests")
+        mock_subprocess = MagicMock(name="subprecess")
+
+        test_session_id = "builds/org_name/test_sessions/123"
+
+        client = LaunchableClient(
+            "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.start("test_build_number", test_session_id)
+
+        mock_response.assert_not_called()
+        mock_requests.assert_not_called()
+        mock_subprocess.assert_not_called()
+        self.assertEqual(client.test_session_id, test_session_id)
+
     def test_subset_success_with_target(self):
         mock_output = MagicMock(name="output")
         mock_subprocess = MagicMock(name="subprecess")
