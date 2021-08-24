@@ -35,8 +35,18 @@ In addition, you may need to set the following environment variables in your env
 |  LAUNCHABLE_TOKEN  |  (Required) A token to access Launchable API  |
 
 ## Development
-Pull requests are always appreciated. If you want to see whether your changes work as expected,  run the following command to install the plugin locally.
+Pull requests are always appreciated. Below are some tips on developing nose-launchable plugin. 
+
+### Install nose-launchable locally 
+If you want to see whether your changes work as expected,  run the following command to install the plugin locally.
 
 ```bash
-$ python setup.py develop
+$ python setup.py install
 ``` 
+
+### Release nose-launchable
+
+1. (Optional) Run `./scripts/update_readme.sh` if you updated README.md
+2. Run `./scripts/bump_up.sh` and update nose_launchable/version.py
+3. Create a Pull Request and merge that
+4. Create a new GitHub release then the new package will be automatically uploaded to [PyPI](https://pypi.org/project/nose-launchable/)
