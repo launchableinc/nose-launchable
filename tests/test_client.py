@@ -60,7 +60,8 @@ class TestLaunchableClient(unittest.TestCase):
         mock_response.json.assert_called_once_with()
 
         self.assertEqual("test_build_number", client.build_number)
-        self.assertEqual(1, client.test_session_id)
+        self.assertEqual(
+            "builds/test_build_number/test_sessions/1", client.test_session_id)
 
     def test_subset_success_with_target(self):
         mock_output = MagicMock(name="output")
@@ -74,15 +75,18 @@ class TestLaunchableClient(unittest.TestCase):
 
         mock_requests = MagicMock(name="requests")
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
-        client.test_session_id = 1
+        client = LaunchableClient(
+            "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.test_session_id = "builds/test_subset_success_with_target/1"
 
         got = client.subset(["tests/test1.py", "tests/test2.py"], None, "10")
 
-        expected_command = ['launchable', 'subset', '--session', '/test_sessions/1', '--target', '10%', 'file']
+        expected_command = ['launchable', 'subset', '--session',
+                            'builds/test_subset_success_with_target/1', '--target', '10%', 'file']
         expected_input = 'tests/test1.py\ntests/test2.py'
 
-        mock_subprocess.run.assert_called_once_with(expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
+        mock_subprocess.run.assert_called_once_with(
+            expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
         self.assertEqual(['tests/test2.py', 'tests/test1.py'], got)
 
     def test_subset_success_with_options(self):
@@ -97,15 +101,19 @@ class TestLaunchableClient(unittest.TestCase):
 
         mock_requests = MagicMock(name="requests")
 
-        client = LaunchableClient("base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
-        client.test_session_id = 1
+        client = LaunchableClient(
+            "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.test_session_id = "builds/test_subset_success_with_options/test_sessions/1"
 
-        got = client.subset(["tests/test1.py", "tests/test2.py"], '--target 10%', None)
+        got = client.subset(
+            ["tests/test1.py", "tests/test2.py"], '--target 10%', None)
 
-        expected_command = ['launchable', 'subset', '--session', '/test_sessions/1', '--target', '10%', 'file']
+        expected_command = ['launchable', 'subset', '--session',
+                            'builds/test_subset_success_with_options/test_sessions/1', '--target', '10%', 'file']
         expected_input = 'tests/test1.py\ntests/test2.py'
 
-        mock_subprocess.run.assert_called_once_with(expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
+        mock_subprocess.run.assert_called_once_with(
+            expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
         self.assertEqual(['tests/test2.py', 'tests/test1.py'], got)
 
     def test_subset_failure(self):
