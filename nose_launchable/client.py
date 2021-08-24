@@ -78,12 +78,11 @@ class LaunchableClient:
         response_body = res.json()
         logger.debug("Response body: {}".format(response_body))
 
-        self.test_session_id = response_body['id']
+        self.test_session_id = "builds/{}/test_sessions/{}".format(
+            self.build_number, response_body['id'])
 
     def subset(self, test_names, options, target):
-        url = "/test_sessions/{}".format(self.test_session_id)
-
-        cmd = ['launchable', 'subset', '--session', url]
+        cmd = ['launchable', 'subset', '--session', self.test_session_id]
         if options is not None:
             cmd.extend([option.strip() for option in options.split(' ')])
             cmd.append('file')
