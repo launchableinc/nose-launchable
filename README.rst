@@ -75,5 +75,10 @@ following command to install the plugin locally.
 Release nose-launchable
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-1. (Optional) Run ``./scripts/bump_up.sh``
+1. (Optional) Run ``./scripts/update_readme.sh`` if you updated
+   README.md
 2. Run ``./scripts/bump_up.sh`` and update nose_launchable/version.py
+3. Create a Pull Request and merge that
+4. Create a new GitHub release then the new package will be
+   automatically uploaded to
+   `PyPI <https://pypi.org/project/nose-launchable/>`__
