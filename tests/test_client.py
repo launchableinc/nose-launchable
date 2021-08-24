@@ -62,8 +62,6 @@ class TestLaunchableClient(unittest.TestCase):
         mock_response.raise_for_status.assert_called_once_with()
         mock_response.json.assert_called_once_with()
 
-        self.assertEqual("test_build_number",
-                         client.build_number)
         self.assertEqual(
             "builds/test_build_number/test_sessions/1", client.test_session_context.get_build_path())
 
@@ -72,16 +70,19 @@ class TestLaunchableClient(unittest.TestCase):
         mock_requests = MagicMock(name="requests")
         mock_subprocess = MagicMock(name="subprecess")
 
-        test_session_id = "builds/org_name/test_sessions/123"
+        test_session = "builds/org_name/test_sessions/123"
 
         client = LaunchableClient(
             "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
-        client.start("test_build_number", test_session_id)
+        client.start("test_build_number", test_session)
 
         mock_response.assert_not_called()
         mock_requests.assert_not_called()
         mock_subprocess.assert_not_called()
-        self.assertEqual(client.test_session_id, test_session_id)
+        self.assertEqual(client.test_session_context.test_session_id, "123")
+        self.assertEqual(client.test_session_context.build_number, "org_name")
+        self.assertEqual(
+            client.test_session_context.get_build_path(), test_session)
 
     def test_subset_success_with_target(self):
         mock_output = MagicMock(name="output")

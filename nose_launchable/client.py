@@ -59,20 +59,20 @@ class LaunchableClient:
         self.token = token
         self.http = http
         self.process = process
-        self.build_number = None
         self.test_session_context = None
 
     def start(self, build_number, test_session):
         if test_session:
-            self.test_session_id = test_session
+            self.test_session_context = TestSessionContext(
+                test_session=test_session)
+
             return
 
-        self.build_number = build_number
         url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions".format(
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.build_number
+            build_number,
         )
 
         res = self.http.post(url, headers=self._headers())
@@ -220,9 +220,14 @@ class LaunchableClient:
 
 
 class TestSessionContext:
-    def __init__(self, build_number=None, test_session_id=None):
-        self.build_number = build_number
-        self.test_session_id = test_session_id
+    def __init__(self, build_number=None, test_session_id=None, test_session=None):
+        if test_session:
+            _, number, _, id = test_session.split("/")
+            self.build_number = number
+            self.test_session_id = id
+        else:
+            self.build_number = build_number
+            self.test_session_id = test_session_id
 
     def get_build_path(self):
         return "builds/{}/test_sessions/{}".format(self.build_number, self.test_session_id)
