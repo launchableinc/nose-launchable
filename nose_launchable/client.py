@@ -92,17 +92,11 @@ class LaunchableClient:
                self.test_session_context.get_build_path()]
 
         if options is not None:
-            opts = self._parse_options(options)
-            for k, v in opts.items():
-                if k == "--bin":
-                    cmd.append("--split")
-                    split_subset = True
-                    continue
+            # split subset
+            if "--bin" in options:
+                return self.split_subset(test_names, options)
 
-                cmd.append(k)
-                if v != "":
-                    cmd.append(v)
-
+            cmd.extend([option.strip() for option in options.split(' ')])
             cmd.append('file')
         else:
             cmd.extend(['--target', target + '%', 'file'])
@@ -121,10 +115,6 @@ class LaunchableClient:
             raise RuntimeError(
                 "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
 
-        if split_subset:
-            subset_id = proc.stdout.rstrip("\n")
-            return self.split_subset(subset_id, options)
-
         # launchable subset command returns a list of test names splitted by \n
         order = proc.stdout.rstrip("\n").split("\n")
 
@@ -132,7 +122,7 @@ class LaunchableClient:
 
         return order
 
-    def split_subset(self, subset_id, options):
+    def split_subset(self, test_names, options):
         cmd = ['launchable', 'split-subset', '--subset-id', subset_id]
 
         opts = self._parse_options(options)
