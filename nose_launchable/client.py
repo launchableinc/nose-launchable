@@ -86,72 +86,33 @@ class LaunchableClient:
             build_number=build_number, test_session_id=response_body["id"])
 
     def subset(self, test_names, options, target):
-        cmd = ['launchable', 'subset', '--session',
-               self.test_session_context.get_build_path()]
 
+        opts = {}
         if options is not None:
             # split subset
             if "--bin" in options:
                 return self.split_subset(test_names, options)
 
-            cmd.extend([option.strip() for option in options.split(' ')])
-            cmd.append('file')
+            opts = self._parse_options(options)
         else:
-            cmd.extend(['--target', target + '%', 'file'])
-
-        logger.debug("Subset command: {}".format(cmd))
-
-        proc = self.process.run(
-            cmd,
-            input="\n".join(test_names),
-            encoding='utf-8',
-            stdout=self.process.PIPE,
-            stderr=self.process.PIPE
-        )
-
-        if proc.returncode != 0:
-            raise RuntimeError(
-                "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+            opts["--target"] = target + "%"
 
         # launchable subset command returns a list of test names splitted by \n
-        order = proc.stdout.rstrip("\n").split("\n")
+        order = self._subset(test_names, opts).rstrip("\n").split("\n")
 
         logger.debug("Subset test order: {}".format(order))
 
         return order
 
     def split_subset(self, test_names, options):
-        subset_cmd = ['launchable', 'subset', '--session',
-                      self.test_session_context.get_build_path()]
         opts = self._parse_options(options)
 
-        for k, v in opts.items():
-            if "--bin" in k:
-                subset_cmd.append("--split")
-                continue
+        opts_for_subset = opts.copy()
+        del opts_for_subset["--bin"]
+        opts_for_subset["--split"] = ""
 
-            if v == "":  # bool option
-                subset_cmd.append(k)
-                continue
-
-            subset_cmd.extend([k, v])
-        subset_cmd.append("file")
-
-        logger.debug("Subset command: {}".format(subset_cmd))
-
-        proc = self.process.run(
-            subset_cmd,
-            input="\n".join(test_names),
-            encoding='utf-8',
-            stdout=self.process.PIPE,
-            stderr=self.process.PIPE
-        )
-
-        if proc.returncode != 0:
-            raise RuntimeError(
-                "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
-
-        subset_id = proc.stdout.rstrip("\n")
+        subset_id = self._subset(
+            test_names, opts_for_subset).rstrip("\n")
 
         split_subset_cmd = ['launchable',
                             'split-subset', '--subset-id', subset_id]
@@ -178,6 +139,34 @@ class LaunchableClient:
         logger.debug("Split-Subset test order: {}".format(order))
 
         return order
+
+    def _subset(self, test_names, options: dict[str, str]):
+        subset_cmd = ['launchable', 'subset', '--session',
+                      self.test_session_context.get_build_path()]
+
+        for k, v in options.items():
+            if v == "":  # bool option
+                subset_cmd.append(k)
+                continue
+            subset_cmd.extend([k, v])
+
+        subset_cmd.append("file")
+
+        logger.debug("Subset command: {}".format(subset_cmd))
+
+        proc = self.process.run(
+            subset_cmd,
+            input="\n".join(test_names),
+            encoding='utf-8',
+            stdout=self.process.PIPE,
+            stderr=self.process.PIPE
+        )
+
+        if proc.returncode != 0:
+            raise RuntimeError(
+                "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+
+        return proc.stdout
 
     def upload_events(self, events):
         url = "{}/intake/organizations/{}/workspaces/{}/{}/events".format(
