@@ -168,7 +168,7 @@ class TestLaunchableClient(unittest.TestCase):
             ["tests/test1.py", "tests/test2.py"], '--target 30% --bin 1/2', None)
 
         expected_subset_command = ['launchable', 'subset', '--session',
-                                   '/test_sessions/1', '--target', '30%', '--split', 'file']
+                                   'builds/split-subset/test_sessions/1', '--target', '30%', '--split', 'file']
         expected_input = 'tests/test1.py\ntests/test2.py'
 
         expected_split_subset_command = [
