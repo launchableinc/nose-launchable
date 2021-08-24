@@ -86,8 +86,6 @@ class LaunchableClient:
             build_number=build_number, test_session_id=response_body["id"])
 
     def subset(self, test_names, options, target):
-
-        split_subset = False
         cmd = ['launchable', 'subset', '--session',
                self.test_session_context.get_build_path()]
 
@@ -123,15 +121,48 @@ class LaunchableClient:
         return order
 
     def split_subset(self, test_names, options):
-        cmd = ['launchable', 'split-subset', '--subset-id', subset_id]
-
+        subset_cmd = ['launchable', 'subset', '--session',
+                      self.test_session_context.get_build_path()]
         opts = self._parse_options(options)
-        cmd.append('--bin', opts['--bin'])
 
-        logger.debug("Split-Subset command: {}".format(cmd))
+        for k, v in opts.items():
+            if "--bin" in k:
+                subset_cmd.append("--split")
+                continue
+
+            if v == "":  # bool option
+                subset_cmd.append(k)
+                continue
+
+            subset_cmd.extend([k, v])
+        subset_cmd.append("file")
+
+        logger.debug("Subset command: {}".format(subset_cmd))
 
         proc = self.process.run(
-            cmd,
+            subset_cmd,
+            input="\n".join(test_names),
+            encoding='utf-8',
+            stdout=self.process.PIPE,
+            stderr=self.process.PIPE
+        )
+
+        if proc.returncode != 0:
+            raise RuntimeError(
+                "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+
+        subset_id = proc.stdout.rstrip("\n")
+
+        split_subset_cmd = ['launchable',
+                            'split-subset', '--subset-id', subset_id]
+
+        split_subset_cmd.extend(['--bin', opts['--bin']])
+        split_subset_cmd.append("file")
+
+        logger.debug("Split-Subset command: {}".format(split_subset_cmd))
+
+        proc = self.process.run(
+            split_subset_cmd,
             encoding='utf-8',
             stdout=self.process.PIPE,
             stderr=self.process.PIPE
