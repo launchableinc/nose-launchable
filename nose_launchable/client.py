@@ -59,11 +59,10 @@ class LaunchableClient:
         self.http = http
         self.process = process
         self.build_number = None
-        self.test_session_id = None
+        self.test_session_context = None
 
     def start(self, build_number):
         self.build_number = build_number
-
         url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions".format(
             self.base_url,
             self.org_name,
@@ -78,12 +77,12 @@ class LaunchableClient:
         response_body = res.json()
         logger.debug("Response body: {}".format(response_body))
 
-        self.test_session_id = response_body['id']
+        self.test_session_context = TestSessionContext(
+            build_number=build_number, test_session_id=response_body["id"])
 
     def subset(self, test_names, options, target):
-        url = "/test_sessions/{}".format(self.test_session_id)
-
-        cmd = ['launchable', 'subset', '--session', url]
+        cmd = ['launchable', 'subset', '--session',
+               self.test_session_context.get_build_path()]
         if options is not None:
             cmd.extend([option.strip() for option in options.split(' ')])
             cmd.append('file')
@@ -111,12 +110,11 @@ class LaunchableClient:
         return order
 
     def upload_events(self, events):
-        url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions/{}/events".format(
+        url = "{}/intake/organizations/{}/workspaces/{}/{}/events".format(
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.build_number,
-            self.test_session_id
+            self.test_session_context.get_build_path(),
         )
 
         request_body = self._upload_request_body(events)
@@ -126,12 +124,11 @@ class LaunchableClient:
         res.raise_for_status()
 
     def finish(self):
-        url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions/{}/close".format(
+        url = "{}/intake/organizations/{}/workspaces/{}/{}/close".format(
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.build_number,
-            self.test_session_id
+            self.test_session_context.get_build_path(),
         )
 
         res = self.http.patch(url, headers=self._headers())
@@ -147,3 +144,12 @@ class LaunchableClient:
 
     def _upload_request_body(self, events):
         return {"events": [event.to_body() for event in events]}
+
+
+class TestSessionContext:
+    def __init__(self, build_number=None, test_session_id=None):
+        self.build_number = build_number
+        self.test_session_id = test_session_id
+
+    def get_build_path(self):
+        return "builds/{}/test_sessions/{}".format(self.build_number, self.test_session_id)
