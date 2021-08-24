@@ -59,10 +59,21 @@ your environment. These values should be provided from Launchable.
 Development
 -----------
 
-Pull requests are always appreciated. If you want to see whether your
-changes work as expected, run the following command to install the
-plugin locally.
+Pull requests are always appreciated. Below are some tips on developing
+nose-launchable plugin.
+
+Install nose-launchable locally
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to see whether your changes work as expected, run the
+following command to install the plugin locally.
 
 .. code:: bash
 
-   $ python setup.py develop
+   $ python setup.py install
+
+Release nose-launchable
+~~~~~~~~~~~~~~~~~~~~~~~
+
+1. (Optional) Run ``./scripts/bump_up.sh``
+2. Run ``./scripts/bump_up.sh`` and update nose_launchable/version.py
