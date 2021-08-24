@@ -216,3 +216,14 @@ class TestLaunchableClient(unittest.TestCase):
 
         mock_requests.patch.assert_called_once_with(expected_url, headers=expected_headers)
         mock_response.raise_for_status.assert_called_once_with()
+
+
+class TestTSessionContext(unittest.TestCase):
+    def test_get_build_path(self):
+        context = TestSessionContext(build_number="1", test_session_id="2")
+        self.assertEqual(context.get_build_path(),
+                         "builds/1/test_sessions/2")
+
+        context = TestSessionContext(build_number="aaa", test_session_id="bbb")
+        self.assertEqual(context.get_build_path(),
+                         "builds/aaa/test_sessions/bbb")
