@@ -1,7 +1,7 @@
 import os
 import subprocess
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory, LaunchableClient, TestSessionContext
@@ -132,11 +132,57 @@ class TestLaunchableClient(unittest.TestCase):
 
         expected_command = ['launchable', 'subset', '--session',
                             'builds/test_subset_success_with_options/test_sessions/1', '--target', '10%', 'file']
+
         expected_input = 'tests/test1.py\ntests/test2.py'
 
         mock_subprocess.run.assert_called_once_with(
             expected_command, input=expected_input, encoding='utf-8', stdout='PIPE', stderr='PIPE')
         self.assertEqual(['tests/test2.py', 'tests/test1.py'], got)
+
+    def test_split_subset(self):
+        mock_subset = MagicMock(name="subset")
+        mock_subset.stdout = "/subset/123"
+        mock_subset.returncode = 0
+
+        mock_split_subset = MagicMock(name="split-subset")
+        mock_split_subset.stdout = "tests/test2.py"
+        mock_split_subset.returncode = 0
+
+        mock_output = MagicMock(name="output")
+        mock_subprocess = MagicMock(name="subprecess")
+        mock_subprocess.run = mock_output
+        mock_output.side_effect = [
+            mock_subset,
+            mock_split_subset,
+        ]
+        mock_subprocess.PIPE = "PIPE"
+
+        mock_requests = MagicMock(name="requests")
+
+        client = LaunchableClient(
+            "base_url", "org_name", "wp_name", "token", mock_requests, mock_subprocess)
+        client.test_session_context = TestSessionContext(
+            build_number="split-subset", test_session_id=1)
+
+        got = client.subset(
+            ["tests/test1.py", "tests/test2.py"], '--target 30% --bin 1/2', None)
+
+        expected_subset_command = ['launchable', 'subset', '--session',
+                                   '/test_sessions/1', '--target', '30%', '--split', 'file']
+        expected_input = 'tests/test1.py\ntests/test2.py'
+
+        expected_split_subset_command = [
+            'launchable', 'split-subset', '--subset-id', "/subset/123", '--bin', "1/2", 'file']
+        expected_input = 'tests/test1.py\ntests/test2.py'
+
+        mock_subprocess.run.assert_has_calls(
+            [
+                call(expected_subset_command, input=expected_input,
+                     encoding='utf-8', stdout='PIPE', stderr='PIPE'),
+                call(expected_split_subset_command,
+                     encoding='utf-8', stdout='PIPE', stderr='PIPE'),
+            ])
+        self.assertEqual(['tests/test2.py'], got)
 
     def test_subset_failure(self):
         mock_output = MagicMock(name="output")
