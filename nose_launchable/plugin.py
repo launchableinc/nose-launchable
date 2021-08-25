@@ -89,16 +89,16 @@ class Launchable(Plugin):
         # only if every validation checks out we are good to go
         self.enabled = True
 
-
     @protect
     def begin(self):
-        self._client.start(self.build_number)
+        self._client.start(self.build_number, self.test_session)
         self._uploader.start()
 
     @protect
     def prepareTest(self, test):
         if self.subset_enabled:
-            self._print("Getting optimized test execution order from Launchable...\n")
+            self._print(
+                "Getting optimized test execution order from Launchable...\n")
 
             self._subset(test)
 
