@@ -140,7 +140,11 @@ class LaunchableClient:
 
         return order
 
-    def _subset(self, test_names, options: dict[str, str]):
+    """
+    @param: options Require dictionary that returned _parse_options method
+    """
+
+    def _subset(self, test_names, options):
         subset_cmd = ['launchable', 'subset', '--session',
                       self.test_session_context.get_build_path()]
 
