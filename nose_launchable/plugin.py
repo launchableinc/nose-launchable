@@ -53,8 +53,8 @@ class Launchable(Plugin):
         self.subset_enabled = options.subset_enabled or False
         self.record_only_enabled = options.record_only_enabled or False
 
-        self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
-        self.test_session = options.test_session
+        build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
+        test_session = options.test_session
         self.subset_target = options.subset_target
         self.subset_options = options.subset_options
 
@@ -70,7 +70,7 @@ class Launchable(Plugin):
             logger.warning("Please specify either --launchable-subset or --launchable-record-only flag")
             return
 
-        if (self.build_number and self.test_session) or (not (self.build_number or self.test_session)):
+        if (build_number and test_session) or (not (build_number or test_session)):
             logger.warning(
                 "Please specify either --launchable-build-number or --launchable-test-session flag")
             return
@@ -80,7 +80,7 @@ class Launchable(Plugin):
             return
 
         try:
-            self._client = LaunchableClientFactory.prepare()
+            self._client = LaunchableClientFactory.prepare(build_number, test_session)
             self._uploader = UploaderFactory.prepare(self._client)
         except Exception as e:
             handleError(e)
@@ -91,7 +91,7 @@ class Launchable(Plugin):
 
     @protect
     def begin(self):
-        self._client.start(self.build_number, self.test_session)
+        self._client.start()
         self._uploader.start()
 
     @protect

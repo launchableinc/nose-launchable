@@ -17,7 +17,7 @@ class LaunchableClientFactory:
     DEFAULT_BASE_URL = "https://api.mercury.launchableinc.com"
 
     @classmethod
-    def prepare(cls):
+    def prepare(cls, build_number, test_session):
         url, org, wp, token = cls._parse_options()
         strategy = Retry(
             total=3,
@@ -31,7 +31,13 @@ class LaunchableClientFactory:
         http.mount("http://", adapter)
         http.mount("https://", adapter)
 
-        return LaunchableClient(url, org, wp, token, http, subprocess)
+        if build_number:
+            context = TestSessionContext(build_number)
+        else:
+            _, bn, _, ts = test_session.split("/")
+            context = TestSessionContext(bn, ts)
+
+        return LaunchableClient(url, org, wp, token, http, subprocess, context)
 
     @classmethod
     def _parse_options(cls):
@@ -52,27 +58,24 @@ class LaunchableClientFactory:
 class LaunchableClient:
     CLIENT_NAME = "nose-launchable"
 
-    def __init__(self, base_url, org_name, workspace_name, token, http, process):
+    def __init__(self, base_url, org_name, workspace_name, token, http, process, context):
         self.base_url = base_url
         self.org_name = org_name
         self.workspace_name = workspace_name
         self.token = token
         self.http = http
         self.process = process
-        self.test_session_context = None
+        self.test_session_context = context
 
-    def start(self, build_number, test_session):
-        if test_session:
-            self.test_session_context = TestSessionContext(
-                test_session=test_session)
-
+    def start(self):
+        if not self.test_session_context.need_test_session():
             return
 
         url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions".format(
             self.base_url,
             self.org_name,
             self.workspace_name,
-            build_number,
+            self.test_session_context.build_number
         )
 
         res = self.http.post(url, headers=self._headers())
@@ -82,8 +85,7 @@ class LaunchableClient:
         response_body = res.json()
         logger.debug("Response body: {}".format(response_body))
 
-        self.test_session_context = TestSessionContext(
-            build_number=build_number, test_session_id=response_body["id"])
+        self.test_session_context.test_session_id = response_body["id"]
 
     def subset(self, test_names, options, target):
 
@@ -146,7 +148,7 @@ class LaunchableClient:
 
     def _subset(self, test_names, options):
         subset_cmd = ['launchable', 'subset', '--session',
-                      self.test_session_context.get_build_path()]
+                      self.test_session_context.get_test_session_path()]
 
         for k, v in options.items():
             if v == "":  # bool option
@@ -177,7 +179,7 @@ class LaunchableClient:
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.test_session_context.get_build_path(),
+            self.test_session_context.get_test_session_path(),
         )
 
         request_body = self._upload_request_body(events)
@@ -191,7 +193,7 @@ class LaunchableClient:
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.test_session_context.get_build_path(),
+            self.test_session_context.get_test_session_path(),
         )
 
         res = self.http.patch(url, headers=self._headers())
@@ -224,14 +226,12 @@ class LaunchableClient:
 
 
 class TestSessionContext:
-    def __init__(self, build_number=None, test_session_id=None, test_session=None):
-        if test_session:
-            _, number, _, id = test_session.split("/")
-            self.build_number = number
-            self.test_session_id = id
-        else:
-            self.build_number = build_number
-            self.test_session_id = test_session_id
-
-    def get_build_path(self):
+    def __init__(self, build_number, test_session_id=None):
+        self.build_number = build_number
+        self.test_session_id = test_session_id
+    
+    def get_test_session_path(self):
         return "builds/{}/test_sessions/{}".format(self.build_number, self.test_session_id)
+
+    def need_test_session(self):
+        return self.test_session_id is None
