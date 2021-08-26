@@ -1,4 +1,4 @@
-launchable >= 1.15.0, ~= 1.0
+launchable >= 1.26.0, ~= 1.0
 nose>=1.0.0
 boto3>=1.0.0
 requests>=2.0.0

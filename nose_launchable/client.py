@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shlex
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -16,7 +17,7 @@ class LaunchableClientFactory:
     DEFAULT_BASE_URL = "https://api.mercury.launchableinc.com"
 
     @classmethod
-    def prepare(cls):
+    def prepare(cls, build_number, session):
         url, org, wp, token = cls._parse_options()
         strategy = Retry(
             total=3,
@@ -30,13 +31,19 @@ class LaunchableClientFactory:
         http.mount("http://", adapter)
         http.mount("https://", adapter)
 
-        return LaunchableClient(url, org, wp, token, http, subprocess)
+        if build_number:
+            context = TestSessionContext(build_number)
+        else:
+            _, bn, _, ts = session.split("/")
+            context = TestSessionContext(bn, ts)
+
+        return LaunchableClient(url, org, wp, token, http, subprocess, context)
 
     @classmethod
     def _parse_options(cls):
         token = os.environ.get(cls.TOKEN_KEY)
         if token is None:
-            raise Exception("%s not set"%cls.TOKEN_KEY)
+            raise Exception("%s not set" % cls.TOKEN_KEY)
 
         _, user, _ = token.split(":", 2)
         org, workplace = user.split("/", 1)
@@ -51,23 +58,24 @@ class LaunchableClientFactory:
 class LaunchableClient:
     CLIENT_NAME = "nose-launchable"
 
-    def __init__(self, base_url, org_name, workspace_name, token, http, process):
+    def __init__(self, base_url, org_name, workspace_name, token, http, process, context):
         self.base_url = base_url
         self.org_name = org_name
         self.workspace_name = workspace_name
         self.token = token
         self.http = http
         self.process = process
-        self.build_number = None
-        self.test_session_context = None
+        self.test_session_context = context
 
-    def start(self, build_number):
-        self.build_number = build_number
+    def start(self):
+        if not self.test_session_context.registered_test_session():
+            return
+
         url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions".format(
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.build_number
+            self.test_session_context.build_number
         )
 
         res = self.http.post(url, headers=self._headers())
@@ -77,22 +85,83 @@ class LaunchableClient:
         response_body = res.json()
         logger.debug("Response body: {}".format(response_body))
 
-        self.test_session_context = TestSessionContext(
-            build_number=build_number, test_session_id=response_body["id"])
+        self.test_session_context.test_session_id = response_body["id"]
 
     def subset(self, test_names, options, target):
-        cmd = ['launchable', 'subset', '--session',
-               self.test_session_context.get_build_path()]
-        if options is not None:
-            cmd.extend([option.strip() for option in options.split(' ')])
-            cmd.append('file')
-        else:
-            cmd.extend(['--target', target + '%', 'file'])
 
-        logger.debug("Subset command: {}".format(cmd))
+        opts = {}
+        if options is not None:
+            # split subset
+            if "--bin" in options:
+                return self.split_subset(test_names, options)
+
+            opts = self._parse_options(options)
+        else:
+            opts["--target"] = target + "%"
+
+        # launchable subset command returns a list of test names splitted by \n
+        order = self._subset(test_names, opts).rstrip("\n").split("\n")
+
+        logger.debug("Subset test order: {}".format(order))
+
+        return order
+
+    def split_subset(self, test_names, options):
+        opts = self._parse_options(options)
+
+        opts_for_subset = opts.copy()
+        del opts_for_subset["--bin"]
+        opts_for_subset["--split"] = ""
+
+        subset_id = self._subset(
+            test_names, opts_for_subset).rstrip("\n")
+
+        split_subset_cmd = ['launchable',
+                            'split-subset', '--subset-id', subset_id]
+
+        split_subset_cmd.extend(['--bin', opts['--bin']])
+        split_subset_cmd.append("file")
+
+        logger.debug("Split-Subset command: {}".format(split_subset_cmd))
 
         proc = self.process.run(
-            cmd,
+            split_subset_cmd,
+            encoding='utf-8',
+            stdout=self.process.PIPE,
+            stderr=self.process.PIPE
+        )
+
+        if proc.returncode != 0:
+            raise RuntimeError(
+                "launchable split subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+
+        # launchable split subset command returns a list of test names splitted by \n
+        order = proc.stdout.rstrip("\n").split("\n")
+
+        logger.debug("Split-Subset test order: {}".format(order))
+
+        return order
+
+    """
+    @param: options Require dictionary that returned _parse_options method
+    """
+
+    def _subset(self, test_names, options):
+        subset_cmd = ['launchable', 'subset', '--session',
+                      self.test_session_context.get_session()]
+
+        for k, v in options.items():
+            if v == "":  # bool option
+                subset_cmd.append(k)
+                continue
+            subset_cmd.extend([k, v])
+
+        subset_cmd.append("file")
+
+        logger.debug("Subset command: {}".format(subset_cmd))
+
+        proc = self.process.run(
+            subset_cmd,
             input="\n".join(test_names),
             encoding='utf-8',
             stdout=self.process.PIPE,
@@ -100,21 +169,17 @@ class LaunchableClient:
         )
 
         if proc.returncode != 0:
-            raise RuntimeError("launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
+            raise RuntimeError(
+                "launchable subset command fails. stdout: {}, stderr: {}", proc.stdout, proc.stderr)
 
-        # launchable subset command returns a list of test names splitted by \n
-        order = proc.stdout.rstrip("\n").split("\n")
-
-        logger.debug("Subset test order: {}".format(order))
-
-        return order
+        return proc.stdout
 
     def upload_events(self, events):
         url = "{}/intake/organizations/{}/workspaces/{}/{}/events".format(
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.test_session_context.get_build_path(),
+            self.test_session_context.get_session(),
         )
 
         request_body = self._upload_request_body(events)
@@ -128,7 +193,7 @@ class LaunchableClient:
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.test_session_context.get_build_path(),
+            self.test_session_context.get_session(),
         )
 
         res = self.http.patch(url, headers=self._headers())
@@ -145,11 +210,28 @@ class LaunchableClient:
     def _upload_request_body(self, events):
         return {"events": [event.to_body() for event in events]}
 
+    def _parse_options(self, option_str):
+        args = shlex.split(option_str)
+        option = {}
+        for k, v in zip(args, args[1:]+["--"]):
+            if not k.startswith("-"):
+                continue
+
+            if v.startswith("-"):  # bool flag
+                option[k] = ""
+            else:
+                option[k] = v
+
+        return option
+
 
 class TestSessionContext:
-    def __init__(self, build_number=None, test_session_id=None):
+    def __init__(self, build_number, test_session_id=None):
         self.build_number = build_number
         self.test_session_id = test_session_id
-
-    def get_build_path(self):
+    
+    def get_session(self):
         return "builds/{}/test_sessions/{}".format(self.build_number, self.test_session_id)
+
+    def registered_test_session(self):
+        return self.test_session_id is None

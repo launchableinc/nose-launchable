@@ -36,6 +36,8 @@ class Launchable(Plugin):
                           help="Enable Launchable subsetting")
         parser.add_option("--launchable-build-number", action='store', type='string', dest="build_number",
                           help="CI/CD build number")
+        parser.add_option("--launchable-test-session", action='store', type='string', dest="test_session",
+                          help="Launchable test session id")
         parser.add_option("--launchable-subset-target", action='store', type='string', dest="subset_target",
                           help="Target percentage of subset")
 
@@ -51,7 +53,8 @@ class Launchable(Plugin):
         self.subset_enabled = options.subset_enabled or False
         self.record_only_enabled = options.record_only_enabled or False
 
-        self.build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
+        build_number = options.build_number or os.getenv(BUILD_NUMBER_KEY)
+        session = options.test_session
         self.subset_target = options.subset_target
         self.subset_options = options.subset_options
 
@@ -67,8 +70,9 @@ class Launchable(Plugin):
             logger.warning("Please specify either --launchable-subset or --launchable-record-only flag")
             return
 
-        if self.build_number is None:
-            logger.warning("Please specify --launchable-build-number flag")
+        if (build_number and session) or (not (build_number or session)):
+            logger.warning(
+                "Please specify either --launchable-build-number or --launchable-test-session flag")
             return
 
         if self.subset_enabled and not ((self.subset_target is None) ^ (self.subset_options is None)):
@@ -76,7 +80,7 @@ class Launchable(Plugin):
             return
 
         try:
-            self._client = LaunchableClientFactory.prepare()
+            self._client = LaunchableClientFactory.prepare(build_number, session)
             self._uploader = UploaderFactory.prepare(self._client)
         except Exception as e:
             handleError(e)
@@ -85,16 +89,16 @@ class Launchable(Plugin):
         # only if every validation checks out we are good to go
         self.enabled = True
 
-
     @protect
     def begin(self):
-        self._client.start(self.build_number)
+        self._client.start()
         self._uploader.start()
 
     @protect
     def prepareTest(self, test):
         if self.subset_enabled:
-            self._print("Getting optimized test execution order from Launchable...\n")
+            self._print(
+                "Getting optimized test execution order from Launchable...\n")
 
             self._subset(test)
 
