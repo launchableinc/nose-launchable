@@ -68,7 +68,7 @@ class LaunchableClient:
         self.test_session_context = context
 
     def start(self):
-        if not self.test_session_context.need_test_session():
+        if not self.test_session_context.registered_test_session():
             return
 
         url = "{}/intake/organizations/{}/workspaces/{}/builds/{}/test_sessions".format(
@@ -233,5 +233,5 @@ class TestSessionContext:
     def get_test_session_path(self):
         return "builds/{}/test_sessions/{}".format(self.build_number, self.test_session_id)
 
-    def need_test_session(self):
+    def registered_test_session(self):
         return self.test_session_id is None

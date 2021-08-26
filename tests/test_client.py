@@ -24,7 +24,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual(subprocess, client.process)
         self.assertEqual("test", client.test_session_context.build_number)
         self.assertIsNone(client.test_session_context.test_session_id)
-        self.assertTrue(client.test_session_context.need_test_session())
+        self.assertTrue(client.test_session_context.registered_test_session())
 
     @mock.patch.dict(os.environ, {"LAUNCHABLE_TOKEN": 'v1:org_name/wp_name:token', })
     def test_prepare_with_test_session(self):
@@ -39,7 +39,7 @@ class TestLaunchableClientFactory(unittest.TestCase):
         self.assertEqual(subprocess, client.process)
         self.assertEqual("test", client.test_session_context.build_number)
         self.assertEqual("1", client.test_session_context.test_session_id)
-        self.assertFalse(client.test_session_context.need_test_session())
+        self.assertFalse(client.test_session_context.registered_test_session())
 
     @mock.patch.dict(os.environ, {
         "LAUNCHABLE_TOKEN": 'v1:org_name/wp_name:token',
@@ -331,10 +331,10 @@ class TestTSessionContext(unittest.TestCase):
         context = TestSessionContext("test", "1")
         self.assertEqual(context.get_test_session_path(), "builds/test/test_sessions/1")
 
-    def test_need_test_session_true(self):
+    def test_registered_test_session_true(self):
         context = TestSessionContext("test")
-        self.assertTrue(context.need_test_session())
+        self.assertTrue(context.registered_test_session())
 
-    def test_need_test_session_false(self):
+    def test_registered_test_session_false(self):
         context = TestSessionContext("test", "1")
-        self.assertFalse(context.need_test_session())
+        self.assertFalse(context.registered_test_session())
