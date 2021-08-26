@@ -17,7 +17,7 @@ class LaunchableClientFactory:
     DEFAULT_BASE_URL = "https://api.mercury.launchableinc.com"
 
     @classmethod
-    def prepare(cls, build_number, test_session):
+    def prepare(cls, build_number, session):
         url, org, wp, token = cls._parse_options()
         strategy = Retry(
             total=3,
@@ -34,7 +34,7 @@ class LaunchableClientFactory:
         if build_number:
             context = TestSessionContext(build_number)
         else:
-            _, bn, _, ts = test_session.split("/")
+            _, bn, _, ts = session.split("/")
             context = TestSessionContext(bn, ts)
 
         return LaunchableClient(url, org, wp, token, http, subprocess, context)
@@ -148,7 +148,7 @@ class LaunchableClient:
 
     def _subset(self, test_names, options):
         subset_cmd = ['launchable', 'subset', '--session',
-                      self.test_session_context.get_test_session_path()]
+                      self.test_session_context.get_session()]
 
         for k, v in options.items():
             if v == "":  # bool option
@@ -179,7 +179,7 @@ class LaunchableClient:
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.test_session_context.get_test_session_path(),
+            self.test_session_context.get_session(),
         )
 
         request_body = self._upload_request_body(events)
@@ -193,7 +193,7 @@ class LaunchableClient:
             self.base_url,
             self.org_name,
             self.workspace_name,
-            self.test_session_context.get_test_session_path(),
+            self.test_session_context.get_session(),
         )
 
         res = self.http.patch(url, headers=self._headers())
@@ -230,7 +230,7 @@ class TestSessionContext:
         self.build_number = build_number
         self.test_session_id = test_session_id
     
-    def get_test_session_path(self):
+    def get_session(self):
         return "builds/{}/test_sessions/{}".format(self.build_number, self.test_session_id)
 
     def registered_test_session(self):

@@ -327,9 +327,9 @@ class TestLaunchableClient(unittest.TestCase):
 
 
 class TestTSessionContext(unittest.TestCase):
-    def test_get_test_session_path(self):
+    def test_get_session(self):
         context = TestSessionContext("test", "1")
-        self.assertEqual(context.get_test_session_path(), "builds/test/test_sessions/1")
+        self.assertEqual(context.get_session(), "builds/test/test_sessions/1")
 
     def test_registered_test_session_true(self):
         context = TestSessionContext("test")
