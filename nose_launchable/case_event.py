@@ -5,6 +5,7 @@ class CaseEvent:
     EVENT_TYPE = "case"
     TEST_PASSED = 1
     TEST_FAILED = 0
+    TEST_SKIPPED = 2
 
     def __init__(self, test_path, duration, status, stdout, stderr):
         self.test_path = test_path
