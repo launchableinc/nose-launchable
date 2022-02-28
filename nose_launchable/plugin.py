@@ -2,10 +2,12 @@ import os
 import sys
 from io import StringIO
 from time import time
+import unittest
 
 from nose.plugins import Plugin
 from nose.plugins.capture import Capture
 from nose.plugins.xunit import Tee
+from nose.plugins.skip import SkipTest
 
 from nose_launchable.case_event import CaseEvent
 from nose_launchable.client import LaunchableClientFactory
@@ -130,12 +132,20 @@ class Launchable(Plugin):
     @protect
     def addError(self, test, err, capt=None):
         type, value, traceback = err
+        # addSkip is already deprecated and skip test cases are called addError method instead ref: https://nose.readthedocs.io/en/latest/plugins/interface.html#nose.plugins.base.IPluginInterface.addSkip
+        # unittest SkipTest is first preference ref: https://github.com/nose-devs/nose/blob/7c26ad1e6b7d308cafa328ad34736d34028c122a/nose/plugins/skip.py#L18-L27
+        # and we don't support unittest2 (python2) from now.
+        if type in (unittest.case.SkipTest, SkipTest):
+            self._addResult(test, CaseEvent.TEST_SKIPPED,
+                            self._uploader.enqueue_failure)
         if type not in (ImportError, ValueError):
-            self._addResult(test, CaseEvent.TEST_FAILED, self._uploader.enqueue_failure)
+            self._addResult(test, CaseEvent.TEST_FAILED,
+                            self._uploader.enqueue_failure)
 
     @protect
     def addFailure(self, test, err, capt=None, tb_info=None):
-        self._addResult(test, CaseEvent.TEST_FAILED, self._uploader.enqueue_failure)
+        self._addResult(test, CaseEvent.TEST_FAILED,
+                        self._uploader.enqueue_failure)
 
     @protect
     def addSuccess(self, test, capt=None):
