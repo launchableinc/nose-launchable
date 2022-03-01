@@ -138,7 +138,7 @@ class Launchable(Plugin):
         if type in (unittest.case.SkipTest, SkipTest):
             self._addResult(test, CaseEvent.TEST_SKIPPED,
                             self._uploader.enqueue_failure)
-        if type not in (ImportError, ValueError):
+        elif type not in (ImportError, ValueError):
             self._addResult(test, CaseEvent.TEST_FAILED,
                             self._uploader.enqueue_failure)
 
