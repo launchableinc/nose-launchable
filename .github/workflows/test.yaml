@@ -45,9 +45,11 @@ jobs:
       run: launchable verify
     - name: launchable record build
       run: launchable record build --name ${GITHUB_RUN_ID}
+    - name: launchable subset
+      run: pytest --collect-only  -q | launchable subset --target 70% --observation pytest > launchable-subset.txt
     - name: Test with pytest
       run: |
-        pytest --junit-xml=test-results/results.xml tests
+        pytest --junit-xml=test-results/results.xml $(cat launchable-subset.txt)
     - name: launchable record build
       if: always()
       run: launchable record tests pytest test-results/results.xml
