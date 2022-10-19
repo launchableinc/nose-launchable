@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from nose_launchable.protecter import protect
+from nose_launchable.protecter import REPORT_ERROR_KEY, protect
 
 
 class TestProtector(unittest.TestCase):
@@ -17,6 +17,12 @@ class TestProtector(unittest.TestCase):
         def error_func():
             raise Exception
 
-        os.environ["LAUNCHABLE_REPORT_ERROR"] = '1'
+        current_config = os.getenv(REPORT_ERROR_KEY, "")
+        os.environ[REPORT_ERROR_KEY] = '1'
         with self.assertRaises(Exception):
             error_func()
+
+        if current_config:
+            os.environ[REPORT_ERROR_KEY] = current_config
+        else:
+            os.environ.pop(REPORT_ERROR_KEY)
