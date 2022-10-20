@@ -25,4 +25,4 @@ class TestProtector(unittest.TestCase):
         if current_config:
             os.environ[REPORT_ERROR_KEY] = current_config
         else:
-            os.environ.pop(REPORT_ERROR_KEY)
+            os.environ.pop(REPORT_ERROR_KEY, None)
