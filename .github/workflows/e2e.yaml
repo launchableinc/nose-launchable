@@ -42,4 +42,11 @@ jobs:
       run: |
         python runner.py
       working-directory: ./e2e
-
+    - uses: actions/checkout@v2
+    - name: slack notify
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_TITLE: "nose-launchable e2e test failed."
+        SLACK_MESSAGE: 'Please check https://github.com/launchableinc/nose-launchable/actions/'
