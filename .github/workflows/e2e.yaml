@@ -34,6 +34,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r test-requirements.txt
       working-directory: ./e2e
+    - name: Preapre tests
+      run: |
+        launchable record build --name ${GITHUB_RUN_ID}
+      working-directory: ./e2e
     - name: Run tests
       run: |
         python runner.py
