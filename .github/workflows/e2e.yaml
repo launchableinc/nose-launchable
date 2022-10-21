@@ -1,0 +1,52 @@
+name: e2e
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron:  '0 */9 * * *'
+  workflow_dispatch:
+
+env:
+  LAUNCHABLE_TOKEN: ${{ secrets.LAUNCHABLE_TOKEN }}
+  LAUNCHABLE_DEBUG: 1
+  LAUNCHABLE_REPORT_ERROR: 1
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r test-requirements.txt
+      working-directory: ./e2e
+    - name: Preapre tests
+      run: |
+        launchable record build --name ${GITHUB_RUN_ID}
+      working-directory: ./e2e
+    - name: Run tests
+      run: |
+        python runner.py
+      working-directory: ./e2e
+    - uses: actions/checkout@v2
+    - name: slack notify
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_TITLE: "nose-launchable e2e test failed."
+        SLACK_MESSAGE: 'Please check https://github.com/launchableinc/nose-launchable/actions/'
