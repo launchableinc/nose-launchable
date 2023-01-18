@@ -48,5 +48,7 @@ jobs:
       uses: rtCamp/action-slack-notify@v2
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_TITLE: "nose-launchable e2e test failed."
-        SLACK_MESSAGE: 'Please check https://github.com/launchableinc/nose-launchable/actions/'
+        SLACK_ICON_EMOJI: :rotating_light:
+        SLACK_TITLE: " :boom: nose-launchable e2e test failed :boom:"
+        SLACK_MESSAGE: '<https://github.com/launchableinc/nose-launchable/actions/|Please check e2e test result>'
+        SLACK_COLOR: "#ff0000"
