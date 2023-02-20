@@ -194,6 +194,10 @@ class Launchable(Plugin):
         return ''
 
     def _addResult(self, test, status, queueing):
+        if not hasattr(test, "test"):
+            logger.warn("This test case is skipped to report because this test doesn't have test attribute. (test id: {})".format(getattr(test, "id", None)))
+            return
+
         test_path = get_test_path(test)
 
         logger.debug("Adding a test result: test: {}, context: {}, test_path: {}".format(test, test.context, test_path))
