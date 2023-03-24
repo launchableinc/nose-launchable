@@ -1,4 +1,5 @@
 launchable >= 1.26.0, ~= 1.0
-nose>=1.0.0
+nose>=1.0.0; python_version < '3.10'
+nose3>=1.3.8; python_version >= '3.10'
 boto3>=1.0.0
 requests>=2.0.0
