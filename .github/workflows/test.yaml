@@ -35,13 +35,18 @@ jobs:
       with:
         java-version: 1.8
     - name: Install dependencies
-      run: |
-        # see: https://github.com/pypa/pip/issues/11972
-        python -m pip install wheel
-        python -m pip install --upgrade pip
-        pip install -r test-requirements.txt
-        pip install -r requirements.txt
-        pip install -e .
+      uses: nick-fields/retry@v2
+      with:
+        max_attempts: 3
+        timeout_minutes: 5
+        retry_on: error
+        command: |
+          # see: https://github.com/pypa/pip/issues/11972
+          python -m pip install wheel
+          python -m pip install --upgrade pip
+          pip install -r test-requirements.txt
+          pip install -r requirements.txt
+          pip install -e .
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
