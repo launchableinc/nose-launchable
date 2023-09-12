@@ -33,9 +33,13 @@ jobs:
       uses: nick-fields/retry@v2
       with:
         max_attempts: 3
+        timeout_minutes: 5
         retry_on: error
-        command: python -m pip install --upgrade pip &&  pip install -r test-requirements.txt
-      working-directory: ./e2e
+        command: |
+          cd ./e2e
+          python -m pip install wheel
+          python -m pip install --upgrade pip
+          pip install -r test-requirements.txt
     - name: Preapre tests
       run: |
         launchable record build --name ${GITHUB_RUN_ID}
@@ -44,7 +48,6 @@ jobs:
       run: |
         python runner.py
       working-directory: ./e2e
-    - uses: actions/checkout@v2
     - name: slack notify
       if: failure()
       uses: rtCamp/action-slack-notify@v2
