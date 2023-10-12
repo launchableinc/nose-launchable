@@ -21,16 +21,16 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
       with:
         fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      uses: nick-fields/retry@v2
+      uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
       with:
         max_attempts: 3
         timeout_minutes: 5
@@ -50,7 +50,7 @@ jobs:
       working-directory: ./e2e
     - name: slack notify
       if: failure()
-      uses: rtCamp/action-slack-notify@v2
+      uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # v2.2.1
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_ICON_EMOJI: ":rotating_light:"
