@@ -25,5 +25,5 @@ class CaseEvent:
             "stdout": self.stdout,
             "stderr": self.stderr,
             "data": {"testPath": serialized_test_path},
-            "created_at": self.created_at
+            "createdAt": self.created_at
         }
